@@ -41,7 +41,13 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
   // 3. The Bouncer: If they aren't logged in, kick them back to the login screen
   if (error || !user) {
-    redirect('/login'); 
+    if (resolvedParams?.error) {
+       redirect(`/login?error=${encodeURIComponent(resolvedParams.error as string)}`);
+    } else if (error) {
+       redirect(`/login?error=${encodeURIComponent('GetUserError: ' + error.message)}`);
+    } else {
+       redirect('/login?error=AccessDenied');
+    }
   }
 
   // 4. Extract their name from Google Login

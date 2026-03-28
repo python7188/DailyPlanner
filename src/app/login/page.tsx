@@ -2,11 +2,20 @@
 
 import AuthScreen from '@/components/AuthScreen';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, Suspense } from 'react';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const errorMsg = searchParams.get('error');
+
+  useEffect(() => {
+    // If we received an explicit error from the server bouncer, alert the user so they can read it!
+    if (errorMsg && errorMsg !== 'AccessDenied') {
+      alert(`AUTH PIPELINE ERROR:\n\n${errorMsg}\n\nPlease screenshot this and send it back.`);
+    }
+  }, [errorMsg]);
 
   useEffect(() => {
     // If the user happens to land on /login but is already authenticated, send them to the dashboard
@@ -31,4 +40,12 @@ export default function LoginPage() {
   };
 
   return <AuthScreen onDemoLogin={handleDemoLogin} />;
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
+  );
 }

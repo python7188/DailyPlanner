@@ -43,10 +43,10 @@ export async function GET(request: Request) {
       // 4. Return the explicit response armed with the Set-Cookie headers
       return response;
     } else {
-      console.error("Auth callback error:", error.message);
+      return NextResponse.redirect(`${origin}/?error=${encodeURIComponent('AuthCallbackError: ' + error.message)}`);
     }
   }
 
   // If code is missing or error happens
-  return NextResponse.redirect(`${origin}/?error=CouldNotLogin`);
+  return NextResponse.redirect(`${origin}/?error=${encodeURIComponent('AuthCallbackError: No code provided')}`);
 }
