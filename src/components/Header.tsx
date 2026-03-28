@@ -5,12 +5,13 @@ import { LogOut, Flame, CheckCircle2, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface HeaderProps {
+  firstName?: string;
   onSignOut: () => void;
   pendingToday: number;
   completedToday: number;
 }
 
-export default function Header({ onSignOut, pendingToday, completedToday }: HeaderProps) {
+export default function Header({ firstName = 'Hustler', onSignOut, pendingToday, completedToday }: HeaderProps) {
   const [greeting, setGreeting] = useState('');
   const [liveTime, setLiveTime] = useState('');
 
@@ -54,8 +55,9 @@ export default function Header({ onSignOut, pendingToday, completedToday }: Head
       {/* Left: Greeting + Date + Live Clock */}
       <div className="flex flex-col gap-0.5">
         <h1 className="text-base sm:text-lg lg:text-xl font-semibold tracking-tight">
-          <span className="text-gradient-gold">{greeting}</span>
-          <span className="text-[var(--color-text-primary)]"> ✦</span>
+          <span className="text-[var(--color-text-secondary)]">{greeting}, </span>
+          <strong className="text-gradient-gold font-bold">{firstName}</strong>
+          <span className="text-[var(--color-text-primary)]">. ✦</span>
         </h1>
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-[10px] text-[var(--color-text-tertiary)] tracking-wide uppercase">
