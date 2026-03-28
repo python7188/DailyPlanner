@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   CheckCircle2, Clock, ListChecks, ChevronDown, Sparkles,
   AlignLeft, Calendar, ChevronLeft, ChevronRight,
@@ -17,6 +17,7 @@ interface TaskListProps {
   onDelete: (id: string) => void;
   onUpdateTitle: (id: string, title: string) => void;
   onSelectDate?: (date: string | null) => void;
+  onReorder?: (newOrder: Task[]) => void;
 }
 
 const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -28,6 +29,7 @@ export default function TaskList({
   onDelete,
   onUpdateTitle,
   onSelectDate,
+  onReorder,
 }: TaskListProps) {
   const todayStr = new Date().toISOString().split('T')[0];
   const [showCompleted, setShowCompleted] = useState(true);
@@ -333,19 +335,21 @@ export default function TaskList({
               </motion.div>
             )}
             <div>
-              <AnimatePresence mode="popLayout">
-                {dateTasks.map((task, i) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onToggle={onToggle}
-                    onDelete={onDelete}
-                    onUpdateTitle={onUpdateTitle}
-                    isToday={task.target_date === todayStr}
-                    index={i}
-                  />
-                ))}
-              </AnimatePresence>
+              <Reorder.Group axis="y" values={dateTasks} onReorder={onReorder || (() => {})}>
+                <AnimatePresence mode="popLayout">
+                  {dateTasks.map((task, i) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onToggle={onToggle}
+                      onDelete={onDelete}
+                      onUpdateTitle={onUpdateTitle}
+                      isToday={task.target_date === todayStr}
+                      index={i}
+                    />
+                  ))}
+                </AnimatePresence>
+              </Reorder.Group>
             </div>
           </div>
         )

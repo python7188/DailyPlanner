@@ -14,6 +14,7 @@ export interface Task {
   is_completed: boolean;
   target_date: string; // ISO date string YYYY-MM-DD
   created_at: string;
+  order_index?: number;
 }
 
 export interface Goal {

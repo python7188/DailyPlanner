@@ -115,9 +115,12 @@ export default function MicroMetrics({ selectedDate }: MicroMetricsProps) {
                   <Edit2 className="w-4 h-4 text-[var(--color-text-ghost)] opacity-0 group-hover/edit:opacity-100 transition-opacity" />
                 </>
               ) : (
-                <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-[var(--color-border)] hover:border-[var(--color-border-gold)] text-[10px] uppercase font-bold text-[var(--color-text-tertiary)] hover:text-[var(--color-gold)] hover:bg-[var(--color-gold-dim)] transition-all">
-                  <Plus className="w-3.5 h-3.5" /> Log today
-                </button>
+                <>
+                  <span className="text-3xl font-bold tracking-tight text-[var(--color-text-ghost)] drop-shadow-sm transition-colors group-hover/edit:text-[var(--color-gold)]">
+                    --
+                  </span>
+                  <Edit2 className="w-4 h-4 text-[var(--color-text-ghost)] opacity-0 group-hover/edit:opacity-100 transition-opacity" />
+                </>
               )}
             </div>
           )}

@@ -61,7 +61,7 @@ export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: A
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-1.5 rounded-lg hover:bg-[var(--color-bg-input)] transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-[var(--color-bg-input)] transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                 </button>
@@ -83,6 +83,18 @@ export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: A
                     placeholder="What needs to be done?"
                     className="w-full px-4 py-3 bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-xl text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-ghost)] focus:outline-none focus:border-[var(--color-border-gold)] focus:ring-2 focus:ring-[var(--color-gold-dim)] transition-all"
                   />
+                  {/* Quick Examples */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {['Hit the gym', 'Read 20 pages', 'Deep work session', 'Study Chapter 4'].map((example) => (
+                      <button
+                        key={example}
+                        onClick={() => setTitle(example)}
+                        className="text-[10px] px-2.5 py-1 rounded-md bg-[var(--color-bg-sidebar)] border border-[var(--color-border)] text-[var(--color-text-tertiary)] hover:border-[var(--color-border-gold)] hover:text-[var(--color-gold)] hover:bg-[var(--color-gold-dim)] transition-all cursor-pointer whitespace-nowrap"
+                      >
+                        {example}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Date Picker */}
@@ -106,14 +118,14 @@ export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: A
               <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--color-border)]">
                 <button
                   onClick={onClose}
-                  className="px-5 py-2.5 rounded-xl text-sm font-medium text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:bg-[var(--color-bg-input)] transition-all"
+                  className="px-5 py-2.5 rounded-xl text-sm font-medium text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:bg-[var(--color-bg-input)] transition-all cursor-pointer hover:brightness-110"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={!title.trim()}
-                  className="btn-gold px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 shadow-[var(--shadow-gold)]"
+                  className="btn-gold px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 shadow-[var(--shadow-gold)] cursor-pointer hover:brightness-110 transition-all"
                 >
                   Add Task
                 </button>

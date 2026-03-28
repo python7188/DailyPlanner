@@ -41,10 +41,11 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const { tasks, isLoading: tasksLoading, addTask, toggleTask, deleteTask, updateTaskTitle } = useTasks(userId, isDemo);
+  const { tasks, isLoading: tasksLoading, addTask, toggleTask, deleteTask, updateTaskTitle, reorderTasks } = useTasks(userId, isDemo);
   const { goals, subTasks, addGoal, updateGoalProgress, deleteGoal, addSubTask, toggleSubTask, deleteSubTask } = useGoals(userId, isDemo);
 
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const todayStrForInit = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState<string | null>(todayStrForInit);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeView, setActiveView] = useState<'tasks' | 'goals'>('tasks');
 
@@ -198,6 +199,7 @@ export default function Home() {
                   onDelete={deleteTask}
                   onUpdateTitle={updateTaskTitle}
                   onSelectDate={setSelectedDate}
+                  onReorder={reorderTasks}
                 />
               </motion.div>
             )}
@@ -215,7 +217,7 @@ export default function Home() {
           whileHover={{ scale: 1.12, rotate: 90 }}
           whileTap={{ scale: 0.92 }}
           onClick={() => setShowAddModal(true)}
-          className="fixed bottom-8 right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-40"
+          className="fixed bottom-[110px] lg:bottom-8 right-6 lg:right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-40 cursor-pointer hover:brightness-110"
           style={{ filter: 'url(#gooey)' }}
         >
           <Plus className="w-6 h-6 text-white" />
@@ -286,11 +288,14 @@ function MobileNav({
         {/* Navigation Tabs */}
         <div className="flex bg-[var(--color-bg-input)] rounded-full p-1 border border-[var(--color-border)]">
           <button
-            onClick={() => onSelectView('tasks')}
+            onClick={() => {
+              onSelectView('tasks');
+              onSelectDate(todayStr);
+            }}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
               activeView === 'tasks'
                 ? 'bg-white text-[var(--color-gold)] shadow-sm ring-1 ring-black/5'
-                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
             }`}
           >
             Tasks
@@ -300,7 +305,7 @@ function MobileNav({
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
               activeView === 'goals'
                 ? 'bg-[var(--color-gold)] text-white shadow-[var(--shadow-gold)]'
-                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
             }`}
           >
             Goals

@@ -103,7 +103,7 @@ export default function Header({ onSignOut, pendingToday, completedToday }: Head
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={onSignOut}
-        className="p-2.5 rounded-xl border border-[var(--color-border)] hover:border-red-500/40 bg-[var(--color-bg-card)] hover:bg-red-500/10 transition-all group"
+        className="p-2.5 rounded-xl border border-[var(--color-border)] hover:border-red-500/40 bg-[var(--color-bg-card)] hover:bg-red-500/10 transition-all group cursor-pointer"
         aria-label="Sign out"
         title="Sign out"
       >

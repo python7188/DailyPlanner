@@ -178,7 +178,7 @@ function GoalCard({
           </div>
           <motion.button
             onClick={() => onDelete(goal.id)}
-            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-50 transition-all flex-shrink-0"
+            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-50 transition-all flex-shrink-0 cursor-pointer"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
@@ -246,7 +246,7 @@ function GoalCard({
         {/* ── Subtasks toggle ── */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1.5 text-[10px] font-semibold text-[var(--color-text-tertiary)] hover:text-[var(--color-gold)] uppercase tracking-widest transition-colors w-full"
+          className="flex items-center gap-1.5 text-[10px] font-semibold text-[var(--color-text-tertiary)] hover:text-[var(--color-gold)] hover:brightness-110 uppercase tracking-widest transition-colors w-full cursor-pointer"
         >
           <motion.div animate={{ rotate: expanded ? 0 : -90 }} transition={{ duration: 0.2 }}>
             <ChevronDown className="w-3.5 h-3.5" />
@@ -271,7 +271,7 @@ function GoalCard({
                   >
                     <button
                       onClick={() => onToggleSubtask(sub.id)}
-                      className="flex-shrink-0"
+                      className="flex-shrink-0 cursor-pointer hover:brightness-110 transition-all"
                     >
                       {sub.is_completed
                         ? <CheckSquare className="w-4 h-4 text-[var(--color-gold)]" />
@@ -288,7 +288,7 @@ function GoalCard({
                     </div>
                     <button
                       onClick={() => onDeleteSubtask(sub.id)}
-                      className="opacity-0 group-hover/sub:opacity-100 p-0.5 rounded hover:bg-red-50 transition-all"
+                      className="opacity-0 group-hover/sub:opacity-100 p-0.5 rounded hover:bg-red-50 transition-all cursor-pointer hover:brightness-90"
                     >
                       <X className="w-3 h-3 text-[var(--color-danger)]" />
                     </button>
@@ -318,7 +318,7 @@ function GoalCard({
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       onClick={handleAddSub}
-                      className="text-[10px] font-semibold text-[var(--color-gold)] hover:underline"
+                      className="text-[10px] font-semibold text-[var(--color-gold)] hover:underline cursor-pointer hover:brightness-110"
                     >
                       Add
                     </motion.button>
@@ -412,7 +412,7 @@ export default function MacroGoals({
         </div>
         <motion.button
           onClick={() => setShowAdd(!showAdd)}
-          className="p-2 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-border-gold)] hover:bg-[var(--color-gold-dim)] transition-all"
+          className="p-2 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-border-gold)] hover:bg-[var(--color-gold-dim)] transition-all cursor-pointer hover:brightness-110"
           whileHover={{ scale: 1.05, rotate: showAdd ? 45 : 0 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -495,7 +495,7 @@ export default function MacroGoals({
                 </div>
                 <motion.button
                   onClick={handleAdd}
-                  className="btn-gold px-6 py-2.5 rounded-xl text-xs font-semibold self-end shadow-[var(--shadow-gold)]"
+                  className="btn-gold px-6 py-2.5 rounded-xl text-xs font-semibold self-end shadow-[var(--shadow-gold)] cursor-pointer hover:brightness-110 transition-all"
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                 >
@@ -544,7 +544,7 @@ export default function MacroGoals({
           <p className="text-xs text-[var(--color-text-ghost)] mt-1">Define your objectives to start tracking</p>
           <motion.button
             onClick={() => setShowAdd(true)}
-            className="btn-gold px-5 py-2 rounded-xl text-xs font-semibold mt-4 shadow-[var(--shadow-gold)]"
+            className="btn-gold px-5 py-2 rounded-xl text-xs font-semibold mt-4 shadow-[var(--shadow-gold)] cursor-pointer hover:brightness-110 transition-all"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >

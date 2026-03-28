@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, Reorder } from 'framer-motion';
 import {
   Check, Trash2,
   Dumbbell, BookOpen, Briefcase, Palette,
@@ -101,7 +101,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
   const [editValue, setEditValue] = useState(task.title);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showConfetti, setShowConfetti] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<any>(null);
 
   /* ── 3D Parallax motion values ── */
   const mouseX = useMotionValue(0);
@@ -173,20 +173,17 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
     day: 'numeric',
   });
 
+  const Component = task.is_completed ? motion.div : Reorder.Item;
+
   return (
-    <motion.div
+    <Component
+      value={task}
       ref={cardRef}
       layout
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -120, scale: 0.95, transition: { duration: 0.25 } }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.25 } }}
       transition={{ duration: 0.35, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
-      drag="x"
-      dragConstraints={{ left: -80, right: 0 }}
-      dragElastic={0.15}
-      onDragEnd={(_, info) => {
-        if (info.offset.x < -60) handleDelete();
-      }}
       onDoubleClick={handleDoubleClick}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -197,7 +194,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
         transformPerspective: 800,
       }}
       className={`
-        notion-row group relative flex items-center gap-3 px-4 py-2.5
+        notion-row group relative flex items-center gap-3 px-4 py-3
         border-b border-[var(--color-border)]
         hover:bg-[var(--color-bg-card)] transition-colors duration-150
         cursor-default
@@ -249,7 +246,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
       <motion.button
         onClick={handleToggle}
         className={`
-          flex-shrink-0 w-[18px] h-[18px] rounded-md border-2 transition-all
+          flex-shrink-0 w-[18px] h-[18px] rounded-md border-2 transition-all cursor-pointer
           flex items-center justify-center
           ${task.is_completed
             ? 'bg-[var(--color-gold)] border-[var(--color-gold)] shadow-[0_0_8px_var(--color-gold-dim)]'
@@ -287,26 +284,37 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleEditSave(); }
               if (e.key === 'Escape') setIsEditing(false);
             }}
-            className="w-full bg-transparent text-sm text-[var(--color-text-primary)] resize-none border-b-2 border-[var(--color-gold)] outline-none py-0.5"
+            className="w-full bg-transparent text-base font-medium text-[var(--color-text-primary)] resize-none border-b-2 border-[var(--color-gold)] outline-none py-0.5"
             rows={1}
           />
         ) : (
-          /* Feature 7: Kinetic Text Distortion for overdue tasks */
-          <p className={`text-sm leading-snug ${
-            task.is_completed
-              ? 'line-through text-[var(--color-text-ghost)]'
-              : isOverdue
-              ? 'text-red-400 kinetic-overdue'
-              : 'text-[var(--color-text-primary)]'
-          }`}>
-            {highlighted.map((part, j) =>
-              typeof part === 'string' ? (
-                <span key={j}>{part}</span>
-              ) : (
-                <span key={j} className="gold-pill">{part.text}</span>
-              )
+          /* Animated Strike-Through wrapper */
+          <div className="relative inline-block">
+            <p className={`text-base font-medium leading-snug transition-colors duration-300 ${
+              task.is_completed
+                ? 'text-[var(--color-text-ghost)]'
+                : isOverdue
+                ? 'text-red-400 kinetic-overdue'
+                : 'text-[var(--color-text-primary)]'
+            }`}>
+              {highlighted.map((part, j) =>
+                typeof part === 'string' ? (
+                  <span key={j}>{part}</span>
+                ) : (
+                  <span key={j} className="gold-pill">{part.text}</span>
+                )
+              )}
+            </p>
+            {/* The animated Slash/Line */}
+            {task.is_completed && (
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: '100%' }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="absolute left-0 top-1/2 -translate-y-1/2 h-[1.5px] bg-[var(--color-text-ghost)] rounded-full"
+              />
             )}
-          </p>
+          </div>
         )}
 
         {/* Overdue badge (Feature 7) */}
@@ -338,7 +346,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
       {/* ── Delete ── */}
       <motion.button
         onClick={handleDelete}
-        className="opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex-shrink-0"
+        className="opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex-shrink-0 cursor-pointer"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >
@@ -364,6 +372,6 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
           transition={{ duration: 0.4, delay: index * 0.05, opacity: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' } }}
         />
       )}
-    </motion.div>
+    </Component>
   );
 }

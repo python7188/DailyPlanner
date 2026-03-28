@@ -96,11 +96,14 @@ export default function Sidebar({ activeView, onSelectView, selectedDate, onSele
       {/* Navigation & Filters */}
       <div className="px-4 py-4 space-y-1 border-b border-[var(--color-border)]">
         <button
-          onClick={() => onSelectView('tasks')}
+          onClick={() => {
+            onSelectView('tasks');
+            onSelectDate(todayStr);
+          }}
           className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all ${
             activeView === 'tasks'
               ? 'bg-[var(--color-gold-dim)] text-[var(--color-gold)] font-semibold border border-[var(--color-border-gold)] shadow-[var(--shadow-gold)]'
-              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-input)] hover:text-[var(--color-text-primary)] font-medium'
+              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-input)] hover:text-[var(--color-text-primary)] font-medium cursor-pointer'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -111,11 +114,13 @@ export default function Sidebar({ activeView, onSelectView, selectedDate, onSele
         </button>
         
         <button
-          onClick={() => onSelectView('goals')}
+          onClick={() => {
+            onSelectView('goals');
+          }}
           className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all ${
             activeView === 'goals'
               ? 'bg-[var(--color-gold-dim)] text-[var(--color-gold)] font-semibold border border-[var(--color-border-gold)] shadow-[var(--shadow-gold)]'
-              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-input)] hover:text-[var(--color-text-primary)] font-medium'
+              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-input)] hover:text-[var(--color-text-primary)] font-medium cursor-pointer'
           }`}
         >
           <div className="flex items-center gap-3">
