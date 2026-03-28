@@ -6,8 +6,8 @@ import { ChevronLeft, ChevronRight, Calendar, Target, LayoutGrid } from 'lucide-
 import type { Task } from '@/lib/supabase';
 
 interface SidebarProps {
-  activeView: 'tasks' | 'goals';
-  onSelectView: (view: 'tasks' | 'goals') => void;
+  activeView: 'tasks' | 'goals' | 'execution';
+  onSelectView: (view: 'tasks' | 'goals' | 'execution') => void;
   selectedDate: string | null;
   onSelectDate: (date: string | null) => void;
   tasks: Task[];
@@ -128,6 +128,24 @@ export default function Sidebar({ activeView, onSelectView, selectedDate, onSele
             Goals Dashboard
           </div>
           {activeView === 'goals' && <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-gold)]" />}
+        </button>
+
+        <button
+          onClick={() => {
+            onSelectView('execution');
+          }}
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all ${
+            activeView === 'execution'
+              ? 'bg-[var(--color-gold-dim)] text-[var(--color-gold)] font-semibold border border-[var(--color-border-gold)] shadow-[var(--shadow-gold)]'
+              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-input)] hover:text-[var(--color-text-primary)] font-medium cursor-pointer'
+          }`}
+        >
+          <div className="flex items-center gap-3 relative">
+            <div className="absolute inset-0 bg-red-500/10 blur-md rounded-full" />
+            <span className="relative w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            Execution Room
+          </div>
+          {activeView === 'execution' && <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-gold)]" />}
         </button>
       </div>
 

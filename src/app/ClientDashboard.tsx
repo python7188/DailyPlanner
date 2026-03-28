@@ -2,18 +2,23 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTasks, useGoals } from '@/hooks/useTasks';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useDisciplineScore } from '@/hooks/useDisciplineScore';
+import { parseMultiTasks } from '@/utils/nlpParser';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import MacroGoals from '@/components/MacroGoals';
 import TaskList from '@/components/TaskList';
+import ExecutionRoom from '@/components/ExecutionRoom';
 import AddTaskModal from '@/components/AddTaskModal';
 import GoldSparks from '@/components/GoldSparks';
 import CinematicReveal from '@/components/CinematicReveal';
 import ChronoAmbient from '@/components/ChronoAmbient';
 import AudioBraindump from '@/components/AudioBraindump';
 import OfflineBadge from '@/components/OfflineBadge';
+import MilestoneSplash from '@/components/MilestoneSplash';
 import { Plus, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -23,6 +28,21 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   const [isDemo, setIsDemo] = useState(initialUserId === 'demo');
 
   useEffect(() => {
+    const checkStreak = async (uid: string) => {
+      try {
+        const { data, error } = await supabase.rpc('record_login', { target_user_id: uid });
+        if (!error && data && data.is_milestone) {
+          setMilestoneVal(data.milestone_val);
+        }
+      } catch (err) {
+        console.error('Streak error:', err);
+      }
+    };
+
+    if (initialUserId && initialUserId !== 'demo') {
+      checkStreak(initialUserId);
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserId(session?.user?.id);
       if (!session?.user && !isDemo) {
@@ -42,16 +62,24 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   const { tasks, isLoading: tasksLoading, addTask, toggleTask, deleteTask, updateTaskTitle, reorderTasks } = useTasks(userId, isDemo);
   const { goals, subTasks, addGoal, updateGoalProgress, deleteGoal, addSubTask, toggleSubTask, deleteSubTask } = useGoals(userId, isDemo);
 
+  const { score: disciplineScore, lastDelta: lastScoreDelta, applyDelta } = useDisciplineScore(userId, isDemo, tasks);
+
+  // Smart Push Notifications hook
+  useNotifications(tasks);
+
   const todayStrForInit = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState<string | null>(todayStrForInit);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [activeView, setActiveView] = useState<'tasks' | 'goals'>('tasks');
+  const [activeView, setActiveView] = useState<'tasks' | 'goals' | 'execution'>('tasks');
 
   // Gold Sparks state
   const [sparkOrigin, setSparkOrigin] = useState<{ x: number; y: number } | null>(null);
 
   // Cinematic Reveal state
   const [cinematicGoal, setCinematicGoal] = useState<string | null>(null);
+
+  // Milestone Splash state
+  const [milestoneVal, setMilestoneVal] = useState<number | null>(null);
 
   // Haptic feedback
   const haptic = useCallback((pattern: number | number[]) => {
@@ -60,20 +88,25 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
     }
   }, []);
 
-  // Handle task toggle with sparks + haptic
+  // Handle task toggle with sparks + haptic + momentum
   const handleToggleTask = useCallback(
     (id: string, e?: React.MouseEvent) => {
       const task = tasks.find((t) => t.id === id);
-      if (task && !task.is_completed && e) {
-        // Spark from checkbox position
-        const rect = (e.target as HTMLElement).getBoundingClientRect();
-        setSparkOrigin({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-        setTimeout(() => setSparkOrigin(null), 1200);
-        haptic(10); // crisp tap
+      if (task && !task.is_completed) {
+        if (e) {
+          // Spark from checkbox position
+          const rect = (e.target as HTMLElement).getBoundingClientRect();
+          setSparkOrigin({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+          setTimeout(() => setSparkOrigin(null), 1200);
+          haptic(10); // crisp tap
+        }
+        
+        // Award Momentum: +10 points when completing
+        applyDelta(10);
       }
       toggleTask(id);
     },
-    [tasks, toggleTask, haptic]
+    [tasks, toggleTask, haptic, applyDelta]
   );
 
   // Handle goal update with cinematic milestone
@@ -138,6 +171,13 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
         {cinematicGoal && <CinematicReveal text={cinematicGoal} onComplete={() => setCinematicGoal(null)} />}
       </AnimatePresence>
 
+      {/* Streak Milestone Splash */}
+      <AnimatePresence>
+        {milestoneVal !== null && (
+          <MilestoneSplash milestoneVal={milestoneVal} onComplete={() => setMilestoneVal(null)} />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar — hidden on mobile */}
       <div className="hidden lg:flex">
         <Sidebar 
@@ -151,7 +191,14 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen relative">
-        <Header firstName={firstName} onSignOut={handleSignOut} pendingToday={pendingToday} completedToday={completedToday} />
+        <Header 
+          firstName={firstName} 
+          onSignOut={handleSignOut} 
+          pendingToday={pendingToday} 
+          completedToday={completedToday} 
+          disciplineScore={disciplineScore}
+          lastScoreDelta={lastScoreDelta}
+        />
 
         {/* Progressive Blur Top Mask */}
         <div className="sticky top-[60px] z-20 h-6 pointer-events-none bg-gradient-to-b from-[var(--color-bg)] to-transparent" />
@@ -177,6 +224,17 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
                   onToggleSubTask={toggleSubTask}
                   onDeleteSubTask={deleteSubTask}
                 />
+              </motion.div>
+            ) : activeView === 'execution' ? (
+              <motion.div
+                key="execution"
+                initial={{ opacity: 0, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, filter: 'blur(8px)' }}
+                transition={{ duration: 0.5, ease: 'easeInOut' }}
+                className="h-full"
+              >
+                <ExecutionRoom />
               </motion.div>
             ) : (
               <motion.div
@@ -204,18 +262,39 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
         <div className="sticky bottom-0 z-20 h-10 pointer-events-none bg-gradient-to-t from-[var(--color-bg)] to-transparent" />
 
         {/* Audio Braindump Mic */}
-        <AudioBraindump onTranscript={(text) => addTask(text, todayStr)} />
+        <AudioBraindump 
+          activeView={activeView}
+          onTranscript={(text) => {
+            const parsedItems = parseMultiTasks(text);
+            if (parsedItems.length === 0) return;
+            
+            parsedItems.forEach((item) => {
+              if (activeView === 'tasks') {
+                addTask(item, todayStr);
+              } else {
+                addGoal(item, 0, 100);
+              }
+            });
+          }} 
+        />
 
-        {/* FAB — Liquid Morphing Plus */}
-        <motion.button
-          whileHover={{ scale: 1.12, rotate: 90 }}
-          whileTap={{ scale: 0.92 }}
-          onClick={() => setShowAddModal(true)}
-          className="fixed bottom-[110px] lg:bottom-8 right-6 lg:right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-40 cursor-pointer hover:brightness-110"
-          style={{ filter: 'url(#gooey)' }}
-        >
-          <Plus className="w-6 h-6 text-white" />
-        </motion.button>
+        {/* FAB — Liquid Morphing Plus (Tasks Only) */}
+        <AnimatePresence>
+          {activeView === 'tasks' && (
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              whileHover={{ scale: 1.12, rotate: 90 }}
+              whileTap={{ scale: 0.92 }}
+              onClick={() => setShowAddModal(true)}
+              className="fixed bottom-[130px] lg:bottom-8 right-6 lg:right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-40 cursor-pointer hover:brightness-110"
+              style={{ filter: 'url(#gooey)' }}
+            >
+              <Plus className="w-6 h-6 text-white" />
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         {/* SVG Gooey Filter */}
         <svg className="fixed" width="0" height="0" aria-hidden="true">
@@ -257,8 +336,8 @@ function MobileNav({
   onSelectDate,
   tasks,
 }: {
-  activeView: 'tasks' | 'goals';
-  onSelectView: (v: 'tasks' | 'goals') => void;
+  activeView: 'tasks' | 'goals' | 'execution';
+  onSelectView: (v: 'tasks' | 'goals' | 'execution') => void;
   selectedDate: string | null;
   onSelectDate: (d: string | null) => void;
   tasks: { target_date: string; is_completed: boolean }[];
@@ -296,13 +375,23 @@ function MobileNav({
           </button>
           <button
             onClick={() => onSelectView('goals')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-full text-xs font-semibold transition-all ${
               activeView === 'goals'
-                ? 'bg-[var(--color-gold)] text-white shadow-[var(--shadow-gold)]'
+                ? 'bg-white text-[var(--color-gold)] shadow-sm ring-1 ring-black/5'
                 : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
             }`}
           >
             Goals
+          </button>
+          <button
+            onClick={() => onSelectView('execution')}
+            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+              activeView === 'execution'
+                ? 'bg-[var(--color-gold)] text-white shadow-[var(--shadow-gold)]'
+                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
+            }`}
+          >
+            Execute
           </button>
         </div>
 

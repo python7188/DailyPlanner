@@ -6,9 +6,10 @@ import { Mic, MicOff, Loader2 } from 'lucide-react';
 
 interface AudioBraindumpProps {
   onTranscript: (text: string) => void;
+  activeView?: 'tasks' | 'goals';
 }
 
-export default function AudioBraindump({ onTranscript }: AudioBraindumpProps) {
+export default function AudioBraindump({ onTranscript, activeView = 'tasks' }: AudioBraindumpProps) {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [supported, setSupported] = useState(true);
@@ -154,7 +155,7 @@ export default function AudioBraindump({ onTranscript }: AudioBraindumpProps) {
               </div>
               <p className="text-white text-sm leading-relaxed min-h-[20px]">
                 {transcript || (
-                  <span className="text-white/40 italic">Speak your task...</span>
+                  <span className="text-white/40 italic">Speak your {activeView === 'goals' ? 'goal' : 'task'}...</span>
                 )}
               </p>
               <p className="text-[10px] text-white/30 mt-2">

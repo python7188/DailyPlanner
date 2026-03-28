@@ -6,9 +6,9 @@ import {
   Check, Trash2,
   Dumbbell, BookOpen, Briefcase, Palette,
   Music, FlaskConical, Languages, CalendarDays,
-  FileText, AlertTriangle
-} from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import type { Task } from '@/lib/supabase';
+import { getHighlightSegments } from '@/utils/timeParser';
 
 interface TaskCardProps {
   task: Task;
@@ -41,23 +41,7 @@ function getTaskIcon(title: string) {
   return <CalendarDays className="w-3.5 h-3.5" />;
 }
 
-/* ── Highlight time patterns ──────────────────────────── */
-function highlightText(title: string) {
-  const timeRegex = /(at\s+\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM)?|\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM))/g;
-  const parts = title.split(timeRegex);
-  const matches = title.match(timeRegex) || [];
-  const result: (string | { type: 'time'; text: string })[] = [];
-  let matchIdx = 0;
-  for (const part of parts) {
-    if (matches[matchIdx] && part === matches[matchIdx]) {
-      result.push({ type: 'time', text: part });
-      matchIdx++;
-    } else {
-      result.push(part);
-    }
-  }
-  return result;
-}
+
 
 /* ── Audio feedback ───────────────────────────────────── */
 function playCheckSound() {
@@ -167,7 +151,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
   };
 
   const icon = getTaskIcon(task.title);
-  const highlighted = highlightText(task.title);
+  const highlighted = getHighlightSegments(task.title);
   const dateLabel = new Date(task.target_date + 'T00:00:00').toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -184,6 +168,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.25 } }}
       transition={{ duration: 0.35, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      dragListener={!task.is_completed}
       onDoubleClick={handleDoubleClick}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -297,11 +282,13 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
                 ? 'text-red-400 kinetic-overdue'
                 : 'text-[var(--color-text-primary)]'
             }`}>
-              {highlighted.map((part, j) =>
-                typeof part === 'string' ? (
-                  <span key={j}>{part}</span>
+              {highlighted.map((seg, j) =>
+                !seg.isTime ? (
+                  <span key={j}>{seg.text}</span>
                 ) : (
-                  <span key={j} className="gold-pill">{part.text}</span>
+                  <span key={j} className="gold-pill font-bold px-1.5 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] mx-1 text-sm shadow-[0_0_10px_rgba(212,161,39,0.2)]">
+                    {seg.text}
+                  </span>
                 )
               )}
             </p>

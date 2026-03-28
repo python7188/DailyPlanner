@@ -1,7 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { LogOut, Flame, CheckCircle2, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LogOut, Flame, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface HeaderProps {
@@ -9,9 +9,18 @@ interface HeaderProps {
   onSignOut: () => void;
   pendingToday: number;
   completedToday: number;
+  disciplineScore?: number;
+  lastScoreDelta?: number;
 }
 
-export default function Header({ firstName = 'Hustler', onSignOut, pendingToday, completedToday }: HeaderProps) {
+export default function Header({ 
+  firstName = 'Hustler', 
+  onSignOut, 
+  pendingToday, 
+  completedToday, 
+  disciplineScore = 1000, 
+  lastScoreDelta = 0 
+}: HeaderProps) {
   const [greeting, setGreeting] = useState('');
   const [liveTime, setLiveTime] = useState('');
 
@@ -98,6 +107,17 @@ export default function Header({ firstName = 'Hustler', onSignOut, pendingToday,
             <span className="text-xs font-bold text-[var(--color-gold)]">{progressPct}%</span>
           </motion.div>
         )}
+        {/* Momentum Ticker (Discipline Score) */}
+        <motion.div
+          key={disciplineScore} // Forces re-animation on score change
+          initial={{ backgroundColor: lastScoreDelta > 0 ? 'rgba(34, 197, 94, 0.4)' : lastScoreDelta < 0 ? 'rgba(239, 68, 68, 0.4)' : 'var(--color-bg-card)', scale: lastScoreDelta !== 0 ? 1.05 : 1 }}
+          animate={{ backgroundColor: 'var(--color-bg-card)', scale: 1 }}
+          transition={{ duration: 1, ease: 'easeOut' }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--color-border)] shadow-inner"
+        >
+          <TrendingUp className={`w-3.5 h-3.5 ${lastScoreDelta > 0 ? 'text-green-400' : lastScoreDelta < 0 ? 'text-red-400' : 'text-[var(--color-text-tertiary)]'}`} />
+          <span className="text-xs font-mono font-bold tracking-widest text-[var(--color-text-secondary)]">{disciplineScore}</span>
+        </motion.div>
       </div>
 
       {/* Right: Sign Out */}

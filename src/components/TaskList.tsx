@@ -7,7 +7,6 @@ import {
   AlignLeft, Calendar, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import TaskCard from './TaskCard';
-import MicroMetrics from './MicroMetrics';
 import type { Task } from '@/lib/supabase';
 
 interface TaskListProps {
@@ -265,8 +264,6 @@ export default function TaskList({
         )}
       </AnimatePresence>
 
-      {/* ── Micro-Metrics Sparkline ── */}
-      <MicroMetrics selectedDate={selectedDate} />
 
       {/* ── Column labels ── */}
       <motion.div
