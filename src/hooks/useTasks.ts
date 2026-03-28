@@ -50,7 +50,6 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         .from('tasks')
         .select('*')
         .eq('user_id', userId)
-        .order('order_index', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (error) { console.error(error); }
@@ -83,7 +82,6 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
           title,
           is_completed: false,
           target_date: targetDate,
-          order_index: tasks.length,
         });
         if (error) {
           console.error(error);
@@ -161,13 +159,12 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
 
     if (!isDemo) {
       // 2. Background DB sync
-      const updates = reorderedList.map((t, index) => ({
+      const updates = reorderedList.map((t) => ({
         id: t.id,
         user_id: t.user_id || userId,
         title: t.title,
         is_completed: t.is_completed,
-        target_date: t.target_date,
-        order_index: index
+        target_date: t.target_date
       }));
       
       supabase.from('tasks').upsert(updates).then(({ error }) => {
