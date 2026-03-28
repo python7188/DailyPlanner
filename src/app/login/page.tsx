@@ -12,7 +12,7 @@ function LoginContent() {
 
   useEffect(() => {
     // If we received an explicit error from the server bouncer, alert the user so they can read it!
-    if (errorMsg && errorMsg !== 'AccessDenied') {
+    if (errorMsg && errorMsg !== 'AccessDenied' && !errorMsg.includes('Auth session missing!')) {
       alert(`AUTH PIPELINE ERROR:\n\n${errorMsg}\n\nPlease screenshot this and send it back.`);
     }
   }, [errorMsg]);

@@ -43,10 +43,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   if (error || !user) {
     if (resolvedParams?.error) {
        redirect(`/login?error=${encodeURIComponent(resolvedParams.error as string)}`);
-    } else if (error) {
+    } else if (error && error.message !== 'Auth session missing!') {
        redirect(`/login?error=${encodeURIComponent('GetUserError: ' + error.message)}`);
     } else {
-       redirect('/login?error=AccessDenied');
+       // Standard unauthenticated flow without throwing pipeline error toasts
+       redirect('/login');
     }
   }
 
