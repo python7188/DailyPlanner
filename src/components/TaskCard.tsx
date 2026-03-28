@@ -1,0 +1,369 @@
+'use client';
+
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import {
+  Check, Trash2,
+  Dumbbell, BookOpen, Briefcase, Palette,
+  Music, FlaskConical, Languages, CalendarDays,
+  FileText, AlertTriangle
+} from 'lucide-react';
+import type { Task } from '@/lib/supabase';
+
+interface TaskCardProps {
+  task: Task;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+  onUpdateTitle: (id: string, title: string) => void;
+  isToday: boolean;
+  index: number;
+}
+
+/* ── Icon mapping ─────────────────────────────────────── */
+function getTaskIcon(title: string) {
+  const lower = title.toLowerCase();
+  if (lower.includes('gym') || lower.includes('barbell') || lower.includes('workout') || lower.includes('physique') || lower.includes('kg'))
+    return <Dumbbell className="w-3.5 h-3.5" />;
+  if (lower.includes('study') || lower.includes('mock') || lower.includes('bitsat') || lower.includes('paper') || lower.includes('syllabus'))
+    return <BookOpen className="w-3.5 h-3.5" />;
+  if (lower.includes('chemistry') || lower.includes('reaction') || lower.includes('zero-order'))
+    return <FlaskConical className="w-3.5 h-3.5" />;
+  if (lower.includes('design') || lower.includes('layout') || lower.includes('image') || lower.includes('nubie'))
+    return <Palette className="w-3.5 h-3.5" />;
+  if (lower.includes('spotify') || lower.includes('playlist') || lower.includes('music'))
+    return <Music className="w-3.5 h-3.5" />;
+  if (lower.includes('sanskrit') || lower.includes('language'))
+    return <Languages className="w-3.5 h-3.5" />;
+  if (lower.includes('brand') || lower.includes('launch') || lower.includes('business') || lower.includes('project'))
+    return <Briefcase className="w-3.5 h-3.5" />;
+  if (lower.includes('review') || lower.includes('read'))
+    return <FileText className="w-3.5 h-3.5" />;
+  return <CalendarDays className="w-3.5 h-3.5" />;
+}
+
+/* ── Highlight time patterns ──────────────────────────── */
+function highlightText(title: string) {
+  const timeRegex = /(at\s+\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM)?|\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM))/g;
+  const parts = title.split(timeRegex);
+  const matches = title.match(timeRegex) || [];
+  const result: (string | { type: 'time'; text: string })[] = [];
+  let matchIdx = 0;
+  for (const part of parts) {
+    if (matches[matchIdx] && part === matches[matchIdx]) {
+      result.push({ type: 'time', text: part });
+      matchIdx++;
+    } else {
+      result.push(part);
+    }
+  }
+  return result;
+}
+
+/* ── Audio feedback ───────────────────────────────────── */
+function playCheckSound() {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 800;
+    osc.type = 'sine';
+    gain.gain.value = 0.06;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+    osc.stop(ctx.currentTime + 0.08);
+  } catch { /* silent */ }
+}
+
+function playDeleteSound() {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 300;
+    osc.type = 'triangle';
+    gain.gain.value = 0.04;
+    osc.start();
+    osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.stop(ctx.currentTime + 0.15);
+  } catch { /* silent */ }
+}
+
+/* ═══════════════════════════════════════════════════════
+   NOTION-STYLE TASK ROW  (Feature 6 + 7)
+   ═══════════════════════════════════════════════════════ */
+export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isToday, index }: TaskCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(task.title);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  /* ── 3D Parallax motion values ── */
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [3, -3]), { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-4, 4]), { stiffness: 300, damping: 30 });
+  const glareX = useTransform(mouseX, [-0.5, 0.5], [0, 100]);
+  const glareY = useTransform(mouseY, [-0.5, 0.5], [0, 100]);
+  const glareOpacity = useSpring(0, { stiffness: 300, damping: 30 });
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (task.is_completed || !cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+    glareOpacity.set(0.08);
+  }, [task.is_completed, mouseX, mouseY, glareOpacity]);
+
+  const handleMouseLeave = useCallback(() => {
+    mouseX.set(0);
+    mouseY.set(0);
+    glareOpacity.set(0);
+  }, [mouseX, mouseY, glareOpacity]);
+
+  /* ── Check if overdue ── */
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isOverdue = !task.is_completed && task.target_date < todayStr;
+
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleDoubleClick = () => {
+    if (task.is_completed) return;
+    setEditValue(task.title);
+    setIsEditing(true);
+  };
+
+  const handleEditSave = () => {
+    if (editValue.trim() && editValue.trim() !== task.title) {
+      onUpdateTitle(task.id, editValue.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleToggle = () => {
+    playCheckSound();
+    if (!task.is_completed) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 800);
+    }
+    onToggle(task.id);
+  };
+
+  const handleDelete = () => {
+    playDeleteSound();
+    onDelete(task.id);
+  };
+
+  const icon = getTaskIcon(task.title);
+  const highlighted = highlightText(task.title);
+  const dateLabel = new Date(task.target_date + 'T00:00:00').toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+
+  return (
+    <motion.div
+      ref={cardRef}
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -120, scale: 0.95, transition: { duration: 0.25 } }}
+      transition={{ duration: 0.35, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      drag="x"
+      dragConstraints={{ left: -80, right: 0 }}
+      dragElastic={0.15}
+      onDragEnd={(_, info) => {
+        if (info.offset.x < -60) handleDelete();
+      }}
+      onDoubleClick={handleDoubleClick}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX: task.is_completed ? 0 : rotateX,
+        rotateY: task.is_completed ? 0 : rotateY,
+        transformStyle: 'preserve-3d',
+        transformPerspective: 800,
+      }}
+      className={`
+        notion-row group relative flex items-center gap-3 px-4 py-2.5
+        border-b border-[var(--color-border)]
+        hover:bg-[var(--color-bg-card)] transition-colors duration-150
+        cursor-default
+        ${isToday && !task.is_completed ? 'notion-row-today' : ''}
+        ${task.is_completed ? 'opacity-50' : ''}
+        ${isOverdue ? 'overdue-row' : ''}
+      `}
+    >
+      {/* ── Dynamic Glare (Feature 6) ── */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none z-10 rounded-none overflow-hidden"
+        aria-hidden="true"
+        style={{ opacity: glareOpacity }}
+      >
+        <motion.div
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(212,161,39,0.25) 0%, transparent 60%)`,
+          }}
+        />
+      </motion.div>
+
+      {/* ── Confetti burst on check ── */}
+      {showConfetti && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1.5 h-1.5 rounded-full"
+              style={{
+                left: '20px',
+                top: '50%',
+                background: ['var(--color-gold)', '#F5D060', '#B8962E', '#FFF8E1'][i % 4],
+              }}
+              initial={{ scale: 0, x: 0, y: 0 }}
+              animate={{
+                scale: [0, 1.2, 0],
+                x: (Math.cos((i * Math.PI * 2) / 8)) * 35,
+                y: (Math.sin((i * Math.PI * 2) / 8)) * 25,
+                opacity: [1, 1, 0],
+              }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* ── Checkbox ── */}
+      <motion.button
+        onClick={handleToggle}
+        className={`
+          flex-shrink-0 w-[18px] h-[18px] rounded-md border-2 transition-all
+          flex items-center justify-center
+          ${task.is_completed
+            ? 'bg-[var(--color-gold)] border-[var(--color-gold)] shadow-[0_0_8px_var(--color-gold-dim)]'
+            : 'border-[var(--color-text-ghost)] hover:border-[var(--color-gold)] hover:shadow-[0_0_6px_var(--color-gold-dim)]'
+          }
+        `}
+        whileHover={{ scale: 1.15 }}
+        whileTap={{ scale: 0.85 }}
+      >
+        {task.is_completed && (
+          <motion.div
+            initial={{ scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+          >
+            <Check className="w-3 h-3 text-white" strokeWidth={3} />
+          </motion.div>
+        )}
+      </motion.button>
+
+      {/* ── Category Icon ── */}
+      <div className={`flex-shrink-0 transition-colors ${task.is_completed ? 'text-[var(--color-text-ghost)]' : 'text-[var(--color-gold)] opacity-60'}`}>
+        {icon}
+      </div>
+
+      {/* ── Title area  ── */}
+      <div className="flex-1 min-w-0 flex items-center gap-2">
+        {isEditing ? (
+          <textarea
+            ref={textareaRef}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={handleEditSave}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleEditSave(); }
+              if (e.key === 'Escape') setIsEditing(false);
+            }}
+            className="w-full bg-transparent text-sm text-[var(--color-text-primary)] resize-none border-b-2 border-[var(--color-gold)] outline-none py-0.5"
+            rows={1}
+          />
+        ) : (
+          /* Feature 7: Kinetic Text Distortion for overdue tasks */
+          <p className={`text-sm leading-snug ${
+            task.is_completed
+              ? 'line-through text-[var(--color-text-ghost)]'
+              : isOverdue
+              ? 'text-red-400 kinetic-overdue'
+              : 'text-[var(--color-text-primary)]'
+          }`}>
+            {highlighted.map((part, j) =>
+              typeof part === 'string' ? (
+                <span key={j}>{part}</span>
+              ) : (
+                <span key={j} className="gold-pill">{part.text}</span>
+              )
+            )}
+          </p>
+        )}
+
+        {/* Overdue badge (Feature 7) */}
+        {isOverdue && (
+          <motion.span
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex-shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-red-500/10 border border-red-500/30 text-[9px] font-bold text-red-400 uppercase tracking-wider"
+          >
+            <AlertTriangle className="w-2.5 h-2.5" />
+            Late
+          </motion.span>
+        )}
+      </div>
+
+      {/* ── Date pill ── */}
+      <span className={`
+        flex-shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-md
+        ${isToday && !task.is_completed
+          ? 'bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)]'
+          : isOverdue
+          ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+          : 'bg-[var(--color-bg-input)] text-[var(--color-text-ghost)]'
+        }
+      `}>
+        {dateLabel}
+      </span>
+
+      {/* ── Delete ── */}
+      <motion.button
+        onClick={handleDelete}
+        className="opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex-shrink-0"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <Trash2 className="w-3.5 h-3.5 text-[var(--color-danger)]" />
+      </motion.button>
+
+      {/* ── Today left accent bar ── */}
+      {isToday && !task.is_completed && (
+        <motion.div
+          className="absolute left-0 top-0 bottom-0 w-[2px] bg-[var(--color-gold)] rounded-r"
+          initial={{ scaleY: 0 }}
+          animate={{ scaleY: 1 }}
+          transition={{ duration: 0.4, delay: index * 0.05 }}
+        />
+      )}
+
+      {/* ── Overdue left accent bar ── */}
+      {isOverdue && (
+        <motion.div
+          className="absolute left-0 top-0 bottom-0 w-[2px] bg-red-400 rounded-r"
+          initial={{ scaleY: 0 }}
+          animate={{ scaleY: 1, opacity: [1, 0.4, 1] }}
+          transition={{ duration: 0.4, delay: index * 0.05, opacity: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' } }}
+        />
+      )}
+    </motion.div>
+  );
+}

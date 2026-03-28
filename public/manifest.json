@@ -1,0 +1,16 @@
+{
+  "name": "Daily Planner Elite",
+  "short_name": "Planner",
+  "description": "A premium daily planner with macro goals.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#D4A127",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
