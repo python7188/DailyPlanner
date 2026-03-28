@@ -112,7 +112,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
   const glareY = useTransform(mouseY, [-0.5, 0.5], [0, 100]);
   const glareOpacity = useSpring(0, { stiffness: 300, damping: 30 });
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
     if (task.is_completed || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
