@@ -82,6 +82,8 @@ body {
   color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-width: 380px;
+  overflow-x: auto;
 }
 
 ::selection {

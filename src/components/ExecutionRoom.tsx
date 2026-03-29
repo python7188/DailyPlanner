@@ -2,12 +2,16 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Share2 } from 'lucide-react';
+import { toPng } from 'html-to-image';
 import { supabase } from '@/lib/supabase';
 import { useSquadPresence } from '@/hooks/useSquadPresence';
 import WarRoomSidebar from './WarRoomSidebar';
+import FlexCard from './FlexCard';
 
 interface ExecutionRoomProps {
   userId?: string | null;
+  userName?: string;
   onSessionComplete?: (sessionTitle: string) => void;
   roomId?: string;
 }
@@ -39,7 +43,7 @@ function useAmbientMode(timeoutMs = 10000) {
   return isAmbient;
 }
 
-export default function ExecutionRoom({ userId, onSessionComplete, roomId }: ExecutionRoomProps) {
+export default function ExecutionRoom({ userId, userName, onSessionComplete, roomId }: ExecutionRoomProps) {
   const isAmbient = useAmbientMode(10000); 
 
   // Format MS helper
@@ -57,7 +61,7 @@ export default function ExecutionRoom({ userId, onSessionComplete, roomId }: Exe
 
   // --- SQUAD PRESENCE HOOK ---
   const localSquadId = useMemo(() => userId || 'guest-' + Math.random().toString(36).slice(2, 6), [userId]);
-  const localUsername = useMemo(() => userId ? 'Hustler ' + userId.slice(0, 4).toUpperCase() : 'Guest', [userId]);
+  const localUsername = useMemo(() => userName || (userId ? 'Hustler ' + userId.slice(0, 4).toUpperCase() : 'Guest'), [userName, userId]);
 
   // Note: Initial state is just a baseline snapshot
   const { squadMembers, updateStatus } = useSquadPresence(roomId, {
@@ -90,6 +94,10 @@ export default function ExecutionRoom({ userId, onSessionComplete, roomId }: Exe
   const [sessionNote, setSessionNote] = useState('');
   const [isLogging, setIsLogging] = useState(false);
   const [showToast, setShowToast] = useState(false);
+
+  // Share State
+  const flexCardRef = useRef<HTMLDivElement>(null);
+  const [isSharing, setIsSharing] = useState(false);
 
   // Load Ghost State for Stopwatch
   useEffect(() => {
@@ -207,6 +215,44 @@ export default function ExecutionRoom({ userId, onSessionComplete, roomId }: Exe
       alert('Failed to log session. Please try again.');
     } finally {
       setIsLogging(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!flexCardRef.current) return;
+    setIsSharing(true);
+    
+    try {
+      // 1. Generate image Data URL
+      const dataUrl = await toPng(flexCardRef.current, {
+        quality: 1,
+        pixelRatio: 2, // High-res
+      });
+
+      // 2. Convert Data URL to File object
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `deep-work-session-${Date.now()}.png`, { type: 'image/png' });
+
+      // 3. Web Share API or Fallback
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'My Deep Work Session',
+          text: 'Just finished a brutal focus session on the Midnight Grind.',
+        });
+      } else {
+        // Fallback: Download the image if Web Share API is unsupported on desktop
+        const link = document.createElement('a');
+        link.download = file.name;
+        link.href = dataUrl;
+        link.click();
+      }
+    } catch (e) {
+      console.error('Share failed', e);
+      alert('Failed to generate sharing image. Please try downloading it on a supported browser.');
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -405,70 +451,72 @@ export default function ExecutionRoom({ userId, onSessionComplete, roomId }: Exe
       </div>
 
       {/* 25% BOTTOM: CUSTOM TIMER */}
-      <motion.div 
-        className="flex-[1] bg-[var(--color-bg-sidebar)]/80 backdrop-blur-md border-t border-[var(--color-border)] flex flex-col items-center justify-center p-8 transition-opacity duration-1000 relative"
-        initial={false}
-        animate={{ opacity: isAmbient && (swRunning || tmrRunning) && !showDebrief ? 0.2 : 1 }}
-      >
-        <div className="absolute top-4 left-6 text-xs font-bold uppercase tracking-widest text-[var(--color-gold)] opacity-50">Custom Timer</div>
-        
-        {!tmrRunning && tmrRemainingMs === 0 && !isAlarmRinging ? (
-          <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
-            <input 
-              type="number"
-              placeholder="Enter minutes..."
-              value={tmrInputStr}
-              onChange={(e) => setTmrInputStr(e.target.value)}
-              className="w-32 sm:w-64 bg-transparent border-b-2 border-white/20 focus:border-[var(--color-gold)] text-center text-3xl font-light text-[var(--color-text-primary)] px-2 sm:px-4 py-2 outline-none transition-colors"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') toggleTimer();
-              }}
-            />
-            {tmrInputStr && (
-              <button 
-                onClick={toggleTimer}
-                className="btn-gold rounded-full px-5 py-2 sm:px-8 sm:py-3 font-bold text-white shadow-lg active:scale-95 transition-transform"
-              >
-                Set
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <h2 className="text-4xl sm:text-5xl font-light tracking-tight tabular-nums relative">
-              {isAlarmRinging ? "00:00" : formatMs(tmrRemainingMs)}
-            </h2>
-            <div className="flex items-center gap-4 mt-6">
-              {isAlarmRinging ? (
+      {!roomId && (
+        <motion.div 
+          className="flex-[1] bg-[var(--color-bg-sidebar)]/80 backdrop-blur-md border-t border-[var(--color-border)] flex flex-col items-center justify-center p-8 transition-opacity duration-1000 relative"
+          initial={false}
+          animate={{ opacity: isAmbient && (swRunning || tmrRunning) && !showDebrief ? 0.2 : 1 }}
+        >
+          <div className="absolute top-4 left-6 text-xs font-bold uppercase tracking-widest text-[var(--color-gold)] opacity-50">Custom Timer</div>
+          
+          {!tmrRunning && tmrRemainingMs === 0 && !isAlarmRinging ? (
+            <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
+              <input 
+                type="number"
+                placeholder="Enter minutes..."
+                value={tmrInputStr}
+                onChange={(e) => setTmrInputStr(e.target.value)}
+                className="w-32 sm:w-64 bg-transparent border-b-2 border-white/20 focus:border-[var(--color-gold)] text-center text-3xl font-light text-[var(--color-text-primary)] px-2 sm:px-4 py-2 outline-none transition-colors"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') toggleTimer();
+                }}
+              />
+              {tmrInputStr && (
                 <button 
-                  onClick={stopAlarm}
-                  className="w-48 py-3 rounded-full text-base font-bold text-white bg-red-500 hover:bg-red-600 transition-all shadow-[0_0_30px_rgba(239,68,68,0.5)] animate-pulse active:scale-95"
+                  onClick={toggleTimer}
+                  className="btn-gold rounded-full px-5 py-2 sm:px-8 sm:py-3 font-bold text-white shadow-lg active:scale-95 transition-transform"
                 >
-                  Stop Alarm
+                  Set
                 </button>
-              ) : (
-                <>
-                  <button 
-                    onClick={toggleTimer}
-                    className={`w-32 py-2 rounded-full text-sm font-bold transition-all shadow-md active:scale-95 ${tmrRunning ? 'bg-red-500/10 border border-red-500/30 text-red-400 backdrop-blur-md' : 'btn-gold text-white'}`}
-                  >
-                    {tmrRunning ? 'Pause' : 'Resume'}
-                  </button>
-                  
-                  {(!tmrRunning || tmrRemainingMs === 0) && (
-                    <button 
-                      onClick={resetTimer}
-                      className="w-32 py-2 rounded-full text-sm font-bold bg-white/5 border border-white/10 text-[var(--color-text-secondary)] hover:bg-white/10 hover:text-white transition-all shadow-inner active:scale-95"
-                    >
-                      Reset Timer
-                    </button>
-                  )}
-                </>
               )}
             </div>
-          </div>
-        )}
-      </motion.div>
+          ) : (
+            <div className="flex flex-col items-center">
+              <h2 className="text-4xl sm:text-5xl font-light tracking-tight tabular-nums relative">
+                {isAlarmRinging ? "00:00" : formatMs(tmrRemainingMs)}
+              </h2>
+              <div className="flex items-center gap-4 mt-6">
+                {isAlarmRinging ? (
+                  <button 
+                    onClick={stopAlarm}
+                    className="w-48 py-3 rounded-full text-base font-bold text-white bg-red-500 hover:bg-red-600 transition-all shadow-[0_0_30px_rgba(239,68,68,0.5)] animate-pulse active:scale-95"
+                  >
+                    Stop Alarm
+                  </button>
+                ) : (
+                  <>
+                    <button 
+                      onClick={toggleTimer}
+                      className={`w-32 py-2 rounded-full text-sm font-bold transition-all shadow-md active:scale-95 ${tmrRunning ? 'bg-red-500/10 border border-red-500/30 text-red-400 backdrop-blur-md' : 'btn-gold text-white'}`}
+                    >
+                      {tmrRunning ? 'Pause' : 'Resume'}
+                    </button>
+                    
+                    {(!tmrRunning || tmrRemainingMs === 0) && (
+                      <button 
+                        onClick={resetTimer}
+                        className="w-32 py-2 rounded-full text-sm font-bold bg-white/5 border border-white/10 text-[var(--color-text-secondary)] hover:bg-white/10 hover:text-white transition-all shadow-inner active:scale-95"
+                      >
+                        Reset Timer
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* =========================================
           EXECUTIVE DEBRIEF MODAL (Framer Motion) 
@@ -517,38 +565,61 @@ export default function ExecutionRoom({ userId, onSessionComplete, roomId }: Exe
                 />
               </div>
 
-              <div className="flex items-center gap-4 mt-auto">
-                <button 
-                  onClick={discardSession}
-                  disabled={isLogging}
-                  className="flex-1 py-3 text-sm font-semibold text-white/40 hover:text-white/80 transition-colors disabled:opacity-50"
+              <div className="flex flex-col gap-4 mt-auto">
+                <button
+                  onClick={handleShare}
+                  disabled={isSharing || isLogging}
+                  className="w-full py-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold transition-all flex items-center justify-center gap-3 backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.05)] active:scale-95 disabled:opacity-50"
                 >
-                  Discard
-                </button>
-                <button 
-                  onClick={logSessionToVault}
-                  disabled={isLogging}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isLogging ? (
-                    <span className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                  {isSharing ? (
+                    <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                   ) : (
-                    'Save to Tasks'
+                    <Share2 className="w-5 h-5 text-white/70" />
                   )}
+                  Share to IG / Twitter
                 </button>
+
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={discardSession}
+                    disabled={isLogging}
+                    className="flex-1 py-3 text-sm font-semibold text-white/40 hover:text-white/80 transition-colors disabled:opacity-50"
+                  >
+                    Discard
+                  </button>
+                  <button 
+                    onClick={logSessionToVault}
+                    disabled={isLogging}
+                    className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isLogging ? (
+                      <span className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                    ) : (
+                      'Save to Tasks'
+                    )}
+                  </button>
+                </div>
               </div>
 
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-      </div> {/* End Execution Zone */}
-
-      {/* WAR ROOM SIDEBAR (SQUAD MODE) */}
-      {roomId && (
-        <div className="w-1/4 h-full relative z-50">
-          <WarRoomSidebar squadMembers={squadMembers} />
+      ) : (
+        /* SQUAD MODE: WAR ROOM SPECTATOR UI FOCUS */
+        <div className="w-full h-full relative z-10 flex items-center justify-center bg-[var(--color-bg)]/50 backdrop-blur-md p-4 sm:p-8">
+           <div className="w-full max-w-2xl mx-auto h-[80vh] flex flex-col">
+              <WarRoomSidebar squadMembers={squadMembers} />
+           </div>
         </div>
+      )}{/* HIDDEN FLEX CARD FOR VIRTUAL EXPORT */}
+      {showDebrief && (
+        <FlexCard 
+          ref={flexCardRef}
+          timeString={formatMs(finalSessionTime * 1000)}
+          disciplinePoints={Math.floor(finalSessionTime / 60)}
+          username={localUsername}
+        />
       )}
     </div>
   );

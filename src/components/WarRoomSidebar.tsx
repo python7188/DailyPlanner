@@ -50,6 +50,7 @@ export default function WarRoomSidebar({ squadMembers }: WarRoomSidebarProps) {
                   {/* Info */}
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
+                      <div className={`w-2.5 h-2.5 rounded-full ${member.isRunning ? 'bg-emerald-500 animate-pulse ring-2 ring-emerald-500/50' : 'bg-red-500/80'} `} />
                       <span className="text-white font-medium text-sm truncate max-w-[120px]">
                         {member.username}
                       </span>

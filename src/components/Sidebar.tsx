@@ -66,6 +66,9 @@ export default function Sidebar({ activeView, onSelectView, selectedDate, onSele
     else setViewMonth(viewMonth + 1);
   };
 
+  const [showSquadMenu, setShowSquadMenu] = useState(false);
+  const [joinId, setJoinId] = useState('');
+  
   return (
     <aside className="w-full lg:w-72 xl:w-80 border-r border-[var(--color-border)] bg-[var(--color-bg-sidebar)] flex flex-col">
       {/* Logo Strip */}
@@ -148,18 +151,56 @@ export default function Sidebar({ activeView, onSelectView, selectedDate, onSele
           {activeView === 'execution' && <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-gold)]" />}
         </button>
 
-        <button
-          onClick={() => {
-            const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-            const url = `${window.location.origin}/room/${roomId}`;
-            navigator.clipboard.writeText(url);
-            alert(`War Room link copied: ${url}\n\nRedirecting you to the room...`);
-            window.location.href = `/room/${roomId}`;
-          }}
-          className="w-full flex items-center justify-between px-3 py-2.5 mt-2 rounded-xl text-xs font-semibold uppercase tracking-widest text-[var(--color-bg)] bg-[var(--color-gold)] hover:bg-yellow-600 transition-all shadow-[var(--shadow-gold)]"
-        >
-          <span>Invite Squad (War Room)</span>
-        </button>
+        <div className="relative mt-2">
+          <button
+            onClick={() => setShowSquadMenu(!showSquadMenu)}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-widest text-[var(--color-bg)] bg-[var(--color-gold)] hover:bg-yellow-600 transition-all shadow-[var(--shadow-gold)]"
+          >
+            <span>Squad War Room</span>
+          </button>
+          
+          <AnimatePresence>
+            {showSquadMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-full left-0 w-full mt-2 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl py-3 px-3 shadow-2xl z-50 flex flex-col gap-3 backdrop-blur-xl"
+              >
+                <button
+                  onClick={() => {
+                    const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+                    window.location.href = `/room/${roomId}`;
+                  }}
+                  className="w-full py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold tracking-wide rounded-lg text-xs uppercase hover:bg-emerald-500/20 transition-colors"
+                >
+                  Create Room
+                </button>
+                
+                <div className="w-full h-px bg-[var(--color-border)]" />
+                
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter Room ID..."
+                    value={joinId}
+                    onChange={(e) => setJoinId(e.target.value.toUpperCase())}
+                    className="flex-1 bg-[var(--color-bg-input)] text-[var(--color-text-primary)] text-xs font-mono px-3 py-2 rounded-lg border border-[var(--color-border)] outline-none focus:border-[var(--color-gold)] transition-colors placeholder:font-sans"
+                  />
+                  <button
+                    onClick={() => {
+                      if (joinId.trim()) window.location.href = `/room/${joinId.trim()}`;
+                    }}
+                    disabled={!joinId.trim()}
+                    className="px-3 py-2 bg-[var(--color-bg-sidebar)] text-[var(--color-text-primary)] border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-xs rounded-lg hover:bg-[var(--color-bg-input)] transition-colors"
+                  >
+                    Join
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
             {/* Calendar */}

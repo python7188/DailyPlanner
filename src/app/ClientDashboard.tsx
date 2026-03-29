@@ -154,7 +154,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   const completedToday = todayTasks.filter((t) => t.is_completed).length;
 
   return (
-    <div className="min-h-screen flex bg-[var(--color-bg)] relative overflow-hidden">
+    <div className="min-h-screen flex bg-[var(--color-bg)] relative overflow-hidden min-w-[380px]">
       {/* Chrono-Ambient Background */}
       {/* <ChronoAmbient /> */}
 
