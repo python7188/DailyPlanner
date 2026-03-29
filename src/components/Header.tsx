@@ -59,11 +59,33 @@ export default function Header({
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3 sm:py-4 border-b border-[var(--color-border)] bg-[var(--color-glass)] backdrop-blur-xl"
+      className="sticky top-0 z-30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 border-b border-[var(--color-border)] bg-[var(--color-glass)] backdrop-blur-xl"
     >
-      {/* Left: Greeting + Date + Live Clock */}
-      <div className="flex flex-col gap-0.5">
-        <h1 className="text-base sm:text-lg lg:text-xl font-semibold tracking-tight">
+      <div className="w-full flex items-center justify-between sm:hidden">
+        {/* Mobile top strip: Greeting + Sign Out */}
+        <div className="flex flex-col gap-0.5">
+          <h1 className="text-sm font-semibold tracking-tight">
+            <span className="text-[var(--color-text-secondary)]">{greeting}, </span>
+            <strong className="text-gradient-gold font-bold">{firstName}</strong>
+            <span className="text-[var(--color-text-primary)]">. ✦</span>
+          </h1>
+        </div>
+        
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onSignOut}
+          className="p-2 rounded-xl border border-[var(--color-border)] hover:border-red-500/40 bg-[var(--color-bg-card)] hover:bg-red-500/10 transition-all group cursor-pointer"
+          aria-label="Sign out"
+          title="Sign out"
+        >
+          <LogOut className="w-3.5 h-3.5 text-[var(--color-text-tertiary)] group-hover:text-red-400 transition-colors" />
+        </motion.button>
+      </div>
+
+      {/* Left: Greeting + Date + Live Clock (Desktop only logic inside a shared container or just hiding the greeting on desktop to avoid dupes) */}
+      <div className="hidden sm:flex flex-col gap-0.5">
+        <h1 className="text-base lg:text-xl font-semibold tracking-tight">
           <span className="text-[var(--color-text-secondary)]">{greeting}, </span>
           <strong className="text-gradient-gold font-bold">{firstName}</strong>
           <span className="text-[var(--color-text-primary)]">. ✦</span>
@@ -85,8 +107,8 @@ export default function Header({
         </div>
       </div>
 
-      {/* Center: Today Stats Pills */}
-      <div className="hidden sm:flex items-center gap-3">
+      {/* Center: Today Stats Pills (Scrollable on Mobile) */}
+      <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto [&::-webkit-scrollbar]:hidden pb-1 sm:pb-0">
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-bg-card)] border border-[var(--color-border)]">
           <Clock className="w-3.5 h-3.5 text-[var(--color-text-tertiary)]" />
           <span className="text-xs font-medium text-[var(--color-text-secondary)]">{pendingToday}</span>
@@ -120,12 +142,12 @@ export default function Header({
         </motion.div>
       </div>
 
-      {/* Right: Sign Out */}
+      {/* Right: Sign Out (Desktop) */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={onSignOut}
-        className="p-2.5 rounded-xl border border-[var(--color-border)] hover:border-red-500/40 bg-[var(--color-bg-card)] hover:bg-red-500/10 transition-all group cursor-pointer"
+        className="hidden sm:flex p-2.5 rounded-xl border border-[var(--color-border)] hover:border-red-500/40 bg-[var(--color-bg-card)] hover:bg-red-500/10 transition-all group cursor-pointer"
         aria-label="Sign out"
         title="Sign out"
       >

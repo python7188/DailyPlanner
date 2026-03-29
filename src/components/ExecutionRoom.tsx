@@ -61,9 +61,10 @@ export default function ExecutionRoom() {
 
   // Save/Tick Stopwatch
   useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
     if (swRunning) {
       swLastTickRef.current = Date.now();
-      const tick = () => {
+      interval = setInterval(() => {
         const now = Date.now();
         const delta = now - swLastTickRef.current;
         swLastTickRef.current = now;
@@ -73,18 +74,17 @@ export default function ExecutionRoom() {
           localStorage.setItem('ghost_stopwatch', JSON.stringify({ elapsed: next, running: true, lastTick: now }));
           return next;
         });
-
-        swRafRef.current = requestAnimationFrame(tick);
-      };
-      swRafRef.current = requestAnimationFrame(tick);
+      }, 50);
     } else {
-      localStorage.setItem('ghost_stopwatch', JSON.stringify({ elapsed: swElapsed, running: false, lastTick: Date.now() }));
-      if (swRafRef.current) cancelAnimationFrame(swRafRef.current);
+      setSwElapsed((prev) => {
+        localStorage.setItem('ghost_stopwatch', JSON.stringify({ elapsed: prev, running: false, lastTick: Date.now() }));
+        return prev;
+      });
     }
     return () => {
-      if (swRafRef.current) cancelAnimationFrame(swRafRef.current);
+      if (interval) clearInterval(interval);
     };
-  }, [swRunning, swElapsed]);
+  }, [swRunning]); // Removed swElapsed to prevent infinite teardown/reinstantiation loop
 
   const toggleStopwatch = () => setSwRunning(!swRunning);
   const resetStopwatch = () => {
@@ -124,10 +124,15 @@ export default function ExecutionRoom() {
   }, []);
 
   const triggerAlarm = () => {
+    if (typeof window === 'undefined') return;
+    
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 500]);
+    
     // Try native HTML5 audio if possible (fallback generic beep using oscillator if audio context exists)
     try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
@@ -144,19 +149,20 @@ export default function ExecutionRoom() {
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
       gain.gain.setValueAtTime(0.1, ctx.currentTime + 1.0);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.1);
-
     } catch(e) {}
   };
 
   useEffect(() => {
-    if (tmrRunning && tmrRemainingMs > 0) {
+    let interval: ReturnType<typeof setInterval>;
+    if (tmrRunning) {
       tmrLastTickRef.current = Date.now();
-      const tick = () => {
+      interval = setInterval(() => {
         const now = Date.now();
         const delta = now - tmrLastTickRef.current;
         tmrLastTickRef.current = now;
 
         setTmrRemainingMs(prev => {
+          if (prev === 0) return 0; // Already done
           const next = Math.max(0, prev - delta);
           localStorage.setItem('ghost_timer', JSON.stringify({ total: tmrTotalMs, remaining: next, running: true, lastTick: now }));
           if (next === 0) {
@@ -165,19 +171,17 @@ export default function ExecutionRoom() {
           }
           return next;
         });
-        if (tmrRunning) {
-          tmrRafRef.current = requestAnimationFrame(tick);
-        }
-      };
-      tmrRafRef.current = requestAnimationFrame(tick);
+      }, 50);
     } else {
-      localStorage.setItem('ghost_timer', JSON.stringify({ total: tmrTotalMs, remaining: tmrRemainingMs, running: false, lastTick: Date.now() }));
-      if (tmrRafRef.current) cancelAnimationFrame(tmrRafRef.current);
+      setTmrRemainingMs(prev => {
+        localStorage.setItem('ghost_timer', JSON.stringify({ total: tmrTotalMs, remaining: prev, running: false, lastTick: Date.now() }));
+        return prev;
+      });
     }
     return () => {
-      if (tmrRafRef.current) cancelAnimationFrame(tmrRafRef.current);
+      if (interval) clearInterval(interval);
     }
-  }, [tmrRunning, tmrRemainingMs, tmrTotalMs]);
+  }, [tmrRunning, tmrTotalMs]);
 
   const toggleTimer = () => {
     if (!tmrRunning && tmrRemainingMs === 0 && tmrInputStr) {
@@ -218,8 +222,8 @@ export default function ExecutionRoom() {
   return (
     <div className="flex flex-col w-full h-full bg-[var(--color-bg)]">
       {/* 75% TOP: PREMIUM STOPWATCH */}
-      <div className="flex-[3] flex flex-col items-center justify-center relative p-8">
-        <h1 className="text-[100px] sm:text-[120px] md:text-[180px] font-light tracking-tighter tabular-nums drop-shadow-sm transition-colors duration-1000" style={{ color: isAmbient && swRunning ? 'var(--color-gold)' : 'var(--color-text-primary)' }}>
+      <div className="flex-[3] flex flex-col items-center justify-center relative p-4 sm:p-8">
+        <h1 className="text-7xl sm:text-[120px] md:text-[180px] font-light tracking-tighter tabular-nums drop-shadow-sm transition-colors duration-1000" style={{ color: isAmbient && swRunning ? 'var(--color-gold)' : 'var(--color-text-primary)' }}>
           {formatMs(swElapsed)}
         </h1>
         
@@ -264,7 +268,7 @@ export default function ExecutionRoom() {
               placeholder="Enter minutes..."
               value={tmrInputStr}
               onChange={(e) => setTmrInputStr(e.target.value)}
-              className="w-48 sm:w-64 bg-transparent border-b-2 border-white/20 focus:border-[var(--color-gold)] text-center text-3xl font-light text-[var(--color-text-primary)] px-4 py-2 outline-none transition-colors"
+              className="w-32 sm:w-64 bg-transparent border-b-2 border-white/20 focus:border-[var(--color-gold)] text-center text-3xl font-light text-[var(--color-text-primary)] px-2 sm:px-4 py-2 outline-none transition-colors"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') toggleTimer();
               }}
@@ -272,7 +276,7 @@ export default function ExecutionRoom() {
             {tmrInputStr && (
               <button 
                 onClick={toggleTimer}
-                className="btn-gold rounded-full px-6 py-2 sm:px-8 sm:py-3 font-bold text-white shadow-lg active:scale-95 transition-transform"
+                className="btn-gold rounded-full px-5 py-2 sm:px-8 sm:py-3 font-bold text-white shadow-lg active:scale-95 transition-transform"
               >
                 Set
               </button>

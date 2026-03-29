@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef } from 'react';
 import type { Task } from '@/lib/supabase';
 import { extractTimeMatch, parseTaskTime } from '@/utils/timeParser';
