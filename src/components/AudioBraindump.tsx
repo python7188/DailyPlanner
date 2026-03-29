@@ -6,7 +6,7 @@ import { Mic, MicOff, Loader2 } from 'lucide-react';
 
 interface AudioBraindumpProps {
   onTranscript: (text: string) => void;
-  activeView?: 'tasks' | 'goals';
+  activeView?: 'tasks' | 'goals' | 'execution';
 }
 
 export default function AudioBraindump({ onTranscript, activeView = 'tasks' }: AudioBraindumpProps) {
