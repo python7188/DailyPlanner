@@ -1,0 +1,64 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main" ] # Automatically build when pushing to your main branch
+  workflow_dispatch: # Allows you to manually trigger the build from the GitHub Actions UI
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the repository code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js Environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use your preferred Node version
+
+      # 3. Install dependencies and Build Next.js (Generates the 'out' folder)
+      - name: Install dependencies & Build Next.js
+        run: |
+          npm ci || npm install
+          npm run build
+          
+          # Failsafe: Ensure Capacitor CLI and Android packages are installed 
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+
+      # 4. Setup Java JDK 17 (Required to compile modern Android apps)
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # 5. Initialize Android Capacitor Project
+      - name: Add and Sync Android Capacitor
+        run: |
+          # Generate the Android codebase dynamically
+          npx cap add android || true
+          
+          # Sync your UI from the 'out' folder into the Android codebase
+          npx cap sync android
+
+      # 6. Build the APK using Android's Gradle tool
+      - name: Compile Android APK
+        working-directory: ./android
+        run: |
+          # Make Gradle executable
+          chmod +x ./gradlew
+          
+          # Build a Debug APK
+          ./gradlew assembleDebug
+
+      # 7. Upload the compiled APK as a GitHub Artifact
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: midnight-grind-app-debug
+          # The standard path where Gradle spits out the debug APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
