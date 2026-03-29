@@ -605,14 +605,18 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
           </motion.div>
         )}
       </AnimatePresence>
-      ) : (
+      </div>
+
+      {roomId && (
         /* SQUAD MODE: WAR ROOM SPECTATOR UI FOCUS */
         <div className="w-full h-full relative z-10 flex items-center justify-center bg-[var(--color-bg)]/50 backdrop-blur-md p-4 sm:p-8">
            <div className="w-full max-w-2xl mx-auto h-[80vh] flex flex-col">
               <WarRoomSidebar squadMembers={squadMembers} />
            </div>
         </div>
-      )}{/* HIDDEN FLEX CARD FOR VIRTUAL EXPORT */}
+      )}
+      
+      {/* HIDDEN FLEX CARD FOR VIRTUAL EXPORT */}
       {showDebrief && (
         <FlexCard 
           ref={flexCardRef}
