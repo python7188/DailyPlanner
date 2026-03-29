@@ -25,10 +25,16 @@ jobs:
         run: |
           npm ci || npm install
           
-          # FIX: Install Capacitor BEFORE the Next.js build so the TypeScript compiler doesn't crash
+          # Install Capacitor BEFORE the Next.js build
           npm install @capacitor/core @capacitor/cli @capacitor/android
           
-          # Now it is safe to build
+          # THE CLOUD ASSASSIN: Delete the dynamic server routes so Next.js doesn't crash during static export
+          rm -rf app/auth/callback
+          rm -rf src/app/auth/callback
+          rm -rf app/api
+          rm -rf src/app/api
+          
+          # Now it is completely safe to build the static mobile app
           npm run build
 
       # 4. Setup Java JDK 17 (Required to compile modern Android apps)
