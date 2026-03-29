@@ -50,7 +50,11 @@ export default function WarRoomSidebar({ squadMembers }: WarRoomSidebarProps) {
                   {/* Info */}
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
-                      <div className={`w-2.5 h-2.5 rounded-full ${member.isRunning ? 'bg-emerald-500 animate-pulse ring-2 ring-emerald-500/50' : 'bg-red-500/80'} `} />
+                      <div className={`w-3 h-3 rounded-full shadow-lg flex-shrink-0 ${
+                        member.isRunning 
+                          ? 'bg-[#10B981] animate-pulse ring-2 ring-[#10B981]/50'
+                          : 'bg-[#EF4444] ring-2 ring-[#EF4444]/30'
+                      }`} />
                       <span className="text-white font-medium text-sm truncate max-w-[120px]">
                         {member.username}
                       </span>
@@ -60,21 +64,22 @@ export default function WarRoomSidebar({ squadMembers }: WarRoomSidebarProps) {
                           animate={{ scale: 1 }}
                           transition={{ type: "spring", stiffness: 300, damping: 15 }}
                         >
-                          <Crown className="w-3.5 h-3.5 text-[var(--color-gold)] drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]" />
+                          <Crown className="w-3.5 h-3.5 text-[var(--color-gold)] drop-shadow-[0_0_8px_rgba(255,215,0,0.5)] flex-shrink-0" />
                         </motion.div>
                       )}
                     </div>
                     
                     {/* Live Status readout */}
-                    {member.isRunning ? (
-                      <span className="text-emerald-400 font-mono text-xs font-bold tracking-wider mt-0.5">
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="font-mono text-gray-300 text-xs font-bold tracking-wider">
                         {member.timeLeft}
                       </span>
-                    ) : (
-                      <span className="text-[var(--color-text-ghost)] uppercase tracking-widest text-[10px] font-bold mt-0.5">
-                        Idle / Paused
-                      </span>
-                    )}
+                      {!member.isRunning && (
+                        <span className="text-[var(--color-text-ghost)] uppercase tracking-widest text-[10px] font-bold">
+                          Idle / Paused
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 

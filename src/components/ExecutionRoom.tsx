@@ -61,7 +61,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
 
   // --- SQUAD PRESENCE HOOK ---
   const localSquadId = useMemo(() => userId || 'guest-' + Math.random().toString(36).slice(2, 6), [userId]);
-  const localUsername = useMemo(() => userName || (userId ? 'Hustler ' + userId.slice(0, 4).toUpperCase() : 'Guest'), [userName, userId]);
+  const localUsername = useMemo(() => userName || (typeof window !== 'undefined' ? localStorage.getItem('userName') : null) || 'User', [userName]);
 
   // Note: Initial state is just a baseline snapshot
   const { squadMembers, updateStatus } = useSquadPresence(roomId, {
@@ -527,17 +527,15 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md"
           >
             <motion.div 
               initial={{ opacity: 0, y: 30, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-[var(--color-bg)]/80 backdrop-blur-2xl border border-[var(--color-gold)]/20 rounded-3xl p-8 sm:p-12 w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col relative overflow-hidden"
+              className="relative w-full max-w-md p-8 mx-4 bg-[#121212]/90 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] rounded-3xl text-white"
             >
-              {/* Subtle Ambient Glow */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-[var(--color-gold)]/10 blur-[80px] pointer-events-none" />
 
               <h2 className="text-xs font-bold tracking-[0.3em] text-[var(--color-gold)]/70 uppercase text-center mb-6">
                 Session Debrief
@@ -561,7 +559,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
                   value={sessionNote}
                   onChange={(e) => setSessionNote(e.target.value)}
                   placeholder="Session Notes (What did you execute?)..."
-                  className="w-full h-28 bg-black/20 border border-white/5 focus:border-[var(--color-gold)]/50 rounded-xl p-4 text-[var(--color-text-primary)] placeholder-white/20 outline-none resize-none transition-colors text-sm"
+                  className="w-full mt-6 p-4 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#CFA660] resize-none"
                 />
               </div>
 
@@ -569,7 +567,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
                 <button
                   onClick={handleShare}
                   disabled={isSharing || isLogging}
-                  className="w-full py-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold transition-all flex items-center justify-center gap-3 backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.05)] active:scale-95 disabled:opacity-50"
+                  className="w-full py-4 mt-6 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold rounded-xl transition-all shadow-lg disabled:opacity-50"
                 >
                   {isSharing ? (
                     <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -590,7 +588,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
                   <button 
                     onClick={logSessionToVault}
                     disabled={isLogging}
-                    className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 py-4 bg-[#CFA660] hover:bg-[#b89355] text-black font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(207,166,96,0.4)] flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {isLogging ? (
                       <span className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />

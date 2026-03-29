@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar, Target, LayoutGrid } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import type { Task } from '@/lib/supabase';
 
 interface SidebarProps {
@@ -16,6 +17,7 @@ interface SidebarProps {
 const DAYS_LABEL = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 export default function Sidebar({ activeView, onSelectView, selectedDate, onSelectDate, tasks }: SidebarProps) {
+  const router = useRouter();
   const today = new Date();
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [viewYear, setViewYear] = useState(today.getFullYear());
@@ -170,7 +172,7 @@ export default function Sidebar({ activeView, onSelectView, selectedDate, onSele
                 <button
                   onClick={() => {
                     const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-                    window.location.href = `/room/${roomId}`;
+                    router.push(`/room/${roomId}`);
                   }}
                   className="w-full py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold tracking-wide rounded-lg text-xs uppercase hover:bg-emerald-500/20 transition-colors"
                 >
@@ -189,7 +191,7 @@ export default function Sidebar({ activeView, onSelectView, selectedDate, onSele
                   />
                   <button
                     onClick={() => {
-                      if (joinId.trim()) window.location.href = `/room/${joinId.trim()}`;
+                      if (joinId.trim()) router.push(`/room/${joinId.trim()}`);
                     }}
                     disabled={!joinId.trim()}
                     className="px-3 py-2 bg-[var(--color-bg-sidebar)] text-[var(--color-text-primary)] border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-xs rounded-lg hover:bg-[var(--color-bg-input)] transition-colors"
