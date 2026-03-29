@@ -147,6 +147,19 @@ export default function Sidebar({ activeView, onSelectView, selectedDate, onSele
           </div>
           {activeView === 'execution' && <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-gold)]" />}
         </button>
+
+        <button
+          onClick={() => {
+            const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const url = `${window.location.origin}/room/${roomId}`;
+            navigator.clipboard.writeText(url);
+            alert(`War Room link copied: ${url}\n\nRedirecting you to the room...`);
+            window.location.href = `/room/${roomId}`;
+          }}
+          className="w-full flex items-center justify-between px-3 py-2.5 mt-2 rounded-xl text-xs font-semibold uppercase tracking-widest text-[var(--color-bg)] bg-[var(--color-gold)] hover:bg-yellow-600 transition-all shadow-[var(--shadow-gold)]"
+        >
+          <span>Invite Squad (War Room)</span>
+        </button>
       </div>
 
             {/* Calendar */}

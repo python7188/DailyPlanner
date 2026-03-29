@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
+import { useSquadPresence } from '@/hooks/useSquadPresence';
+import WarRoomSidebar from './WarRoomSidebar';
 
 interface ExecutionRoomProps {
   userId?: string | null;
   onSessionComplete?: (sessionTitle: string) => void;
+  roomId?: string;
 }
 
 // Hooks for Ambient Mode
@@ -36,8 +39,45 @@ function useAmbientMode(timeoutMs = 10000) {
   return isAmbient;
 }
 
-export default function ExecutionRoom({ userId, onSessionComplete }: ExecutionRoomProps) {
+export default function ExecutionRoom({ userId, onSessionComplete, roomId }: ExecutionRoomProps) {
   const isAmbient = useAmbientMode(10000); 
+
+  // Format MS helper
+  const formatMs = useCallback((ms: number) => {
+    const totalSecs = Math.floor(ms / 1000);
+    const h = Math.floor(totalSecs / 3600);
+    const m = Math.floor((totalSecs % 3600) / 60);
+    const s = totalSecs % 60;
+    
+    const hStr = h > 0 ? String(h).padStart(2, '0') + ':' : '';
+    const mStr = String(m).padStart(2, '0');
+    const sStr = String(s).padStart(2, '0');
+    return `${hStr}${mStr}:${sStr}`;
+  }, []);
+
+  // --- SQUAD PRESENCE HOOK ---
+  const localSquadId = useMemo(() => userId || 'guest-' + Math.random().toString(36).slice(2, 6), [userId]);
+  const localUsername = useMemo(() => userId ? 'Hustler ' + userId.slice(0, 4).toUpperCase() : 'Guest', [userId]);
+
+  // Note: Initial state is just a baseline snapshot
+  const { squadMembers, updateStatus } = useSquadPresence(roomId, {
+    userId: localSquadId,
+    username: localUsername,
+    isRunning: false,
+    timeLeft: '00:00',
+    disciplinePoints: 0,
+  });
+
+  const broadcastState = useCallback((isRunning: boolean, timeStr: string) => {
+    if (!roomId) return;
+    updateStatus({
+      userId: localSquadId,
+      username: localUsername,
+      isRunning,
+      timeLeft: timeStr,
+      disciplinePoints: 0,
+    });
+  }, [roomId, updateStatus, localSquadId, localUsername]);
 
   // --- TOP: STOPWATCH (75%) ---
   const [swRunning, setSwRunning] = useState(false);
@@ -97,11 +137,16 @@ export default function ExecutionRoom({ userId, onSessionComplete }: ExecutionRo
     };
   }, [swRunning, showDebrief]); 
 
-  const toggleStopwatch = () => setSwRunning(!swRunning);
+  const toggleStopwatch = () => {
+    const newState = !swRunning;
+    setSwRunning(newState);
+    broadcastState(newState, formatMs(swElapsed));
+  };
   
   // Triggers Debrief Modal
   const initiateDebrief = () => {
     setSwRunning(false);
+    broadcastState(false, 'Debriefing...');
     setFinalSessionTime(Math.floor(swElapsed / 1000));
     setShowDebrief(true);
   };
@@ -109,6 +154,7 @@ export default function ExecutionRoom({ userId, onSessionComplete }: ExecutionRo
   const discardSession = () => {
     setSwRunning(false);
     setSwElapsed(0);
+    broadcastState(false, '00:00');
     setFinalSessionTime(0);
     setShowDebrief(false);
     setSessionNote('');
@@ -286,12 +332,15 @@ export default function ExecutionRoom({ userId, onSessionComplete }: ExecutionRo
         setTmrTotalMs(ms);
         setTmrRemainingMs(ms);
         setTmrRunning(true);
+        broadcastState(true, formatMs(ms));
       }
     } else if (tmrRemainingMs > 0) {
       if (tmrRemainingMs === 0 && !tmrRunning) {
          // Reset block instead
       }
-      setTmrRunning(!tmrRunning);
+      const newState = !tmrRunning;
+      setTmrRunning(newState);
+      broadcastState(newState, formatMs(tmrRemainingMs));
     }
   };
 
@@ -301,24 +350,12 @@ export default function ExecutionRoom({ userId, onSessionComplete }: ExecutionRo
     setTmrTotalMs(0);
     setTmrInputStr('');
     localStorage.removeItem('ghost_timer');
-  };
-
-  // Format MS -> HH:MM:SS or MM:SS
-  const formatMs = (ms: number) => {
-    const totalSecs = Math.floor(ms / 1000);
-    const h = Math.floor(totalSecs / 3600);
-    const m = Math.floor((totalSecs % 3600) / 60);
-    const s = totalSecs % 60;
-    
-    const hStr = h > 0 ? String(h).padStart(2, '0') + ':' : '';
-    const mStr = String(m).padStart(2, '0');
-    const sStr = String(s).padStart(2, '0');
-    
-    return `${hStr}${mStr}:${sStr}`;
+    broadcastState(false, '00:00');
   };
 
   return (
-    <div className="flex flex-col w-full h-full bg-[var(--color-bg)] relative">
+    <div className="flex w-full h-full bg-[var(--color-bg)] relative">
+      <div className={`flex flex-col relative transition-all duration-500 overflow-hidden ${roomId ? 'w-3/4' : 'w-full'}`}>
 
       {/* SUCCESS TOAST OVERLAY */}
       <AnimatePresence>
@@ -505,7 +542,14 @@ export default function ExecutionRoom({ userId, onSessionComplete }: ExecutionRo
           </motion.div>
         )}
       </AnimatePresence>
+      </div> {/* End Execution Zone */}
 
+      {/* WAR ROOM SIDEBAR (SQUAD MODE) */}
+      {roomId && (
+        <div className="w-1/4 h-full relative z-50">
+          <WarRoomSidebar squadMembers={squadMembers} />
+        </div>
+      )}
     </div>
   );
 }
