@@ -1,46 +1,44 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+'use client';
+
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import ClientDashboard from './ClientDashboard';
+import { supabase } from '@/lib/supabase';
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  // Await search params for Next 15 compatibility
-  const resolvedParams = await searchParams;
-  
-  // Allow the demo flow to bypass the Supabase server bouncer
-  if (resolvedParams?.demo === 'true') {
-    return <ClientDashboard initialUserId="demo" firstName="Hustler" />;
+function DashboardBouncer() {
+  const searchParams = useSearchParams();
+  const isDemo = searchParams.get('demo') === 'true';
+
+  const [userId, setUserId] = useState<string | undefined>(isDemo ? 'demo' : undefined);
+  const [firstName, setFirstName] = useState<string>('Hustler');
+  const [loading, setLoading] = useState(!isDemo);
+
+  useEffect(() => {
+    if (isDemo) return;
+
+    const checkUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (user && !error) {
+        setUserId(user.id);
+        const fullName = user.user_metadata?.full_name || 'Hustler';
+        setFirstName(fullName.split(' ')[0]);
+      }
+      setLoading(false);
+    };
+
+    checkUser();
+  }, [isDemo]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)]">
+        <div className="w-8 h-8 border-2 border-[var(--color-gold)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
-  const cookieStore = await cookies();
-  
-  // 1. Initialize Supabase on the Server
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
-            });
-          } catch (error) {
-            // Cannot directly set from server component, safely skip
-          }
-        },
-      },
-    }
-  );
-
-  // 2. Fetch the logged-in user securely
-  const { data: { user }, error } = await supabase.auth.getUser();
-
-  // 3. The Bouncer: If they aren't logged in, kick them back to the login screen
-  if (error || !user) {
+  if (!userId && !isDemo) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden font-sans">
         <div className="relative z-10 w-full max-w-sm mx-4 bg-white/70 backdrop-blur-3xl rounded-3xl border border-white/80 shadow-2xl shadow-black/5 p-10 text-center">
@@ -72,12 +70,17 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     );
   }
 
-  // 4. Extract their name from Google Login
-  const fullName = user.user_metadata?.full_name || 'Hustler';
-  const firstName = fullName.split(' ')[0]; // Grabs just their first name
+  return <ClientDashboard initialUserId={userId!} firstName={firstName} />;
+}
 
-  // Note: We leave the dynamic time clock logic rendering to the Client Header
-  // because server-time might be UTC while the user is in another timezone.
-
-  return <ClientDashboard initialUserId={user.id} firstName={firstName} />;
+export default function Dashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)]">
+        <div className="w-8 h-8 border-2 border-[var(--color-gold)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <DashboardBouncer />
+    </Suspense>
+  );
 }
