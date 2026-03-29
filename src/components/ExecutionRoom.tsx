@@ -162,6 +162,8 @@ export default function ExecutionRoom({ userId }: ExecutionRoomProps) {
   const [tmrTotalMs, setTmrTotalMs] = useState(0);
   const [tmrRemainingMs, setTmrRemainingMs] = useState(0);
   const tmrLastTickRef = useRef<number>(0);
+  const [isAlarmRinging, setIsAlarmRinging] = useState(false);
+  const alarmIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Load Ghost State for Timer
   useEffect(() => {
@@ -185,11 +187,16 @@ export default function ExecutionRoom({ userId }: ExecutionRoomProps) {
     }
   }, []);
 
-  // Cinematic Bell Ringtone
+  // Cinematic Bell Ringtone Continuous Loop
   const triggerAlarm = () => {
     if (typeof window === 'undefined') return;
+    setIsAlarmRinging(true);
+    playChime();
+    alarmIntervalRef.current = setInterval(playChime, 4000);
+  };
+
+  const playChime = () => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 500]);
-    
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -204,7 +211,6 @@ export default function ExecutionRoom({ userId }: ExecutionRoomProps) {
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
         
-        // Soft envelope
         gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
         gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + startTime + 0.05);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
@@ -213,15 +219,25 @@ export default function ExecutionRoom({ userId }: ExecutionRoomProps) {
         osc.stop(ctx.currentTime + startTime + duration);
       };
       
-      // Serene D-Major 9 Chord progression (Cinematic Bell effect)
       playTone(587.33, 0, 3, 0.4);    // D5
       playTone(739.99, 0.1, 3, 0.3);  // F#5
       playTone(880.00, 0.2, 3, 0.2);  // A5
       playTone(1108.73, 0.3, 3, 0.2); // C#6
       playTone(1318.51, 0.5, 4, 0.1); // E6
-      
     } catch(e) {}
   };
+
+  const stopAlarm = () => {
+    setIsAlarmRinging(false);
+    if (alarmIntervalRef.current) clearInterval(alarmIntervalRef.current);
+    resetTimer();
+  };
+
+  useEffect(() => {
+    return () => {
+      if (alarmIntervalRef.current) clearInterval(alarmIntervalRef.current);
+    }
+  }, []);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -236,7 +252,7 @@ export default function ExecutionRoom({ userId }: ExecutionRoomProps) {
           if (prev === 0) return 0; // Already done
           const next = Math.max(0, prev - delta);
           localStorage.setItem('ghost_timer', JSON.stringify({ total: tmrTotalMs, remaining: next, running: true, lastTick: now }));
-          if (next === 0) {
+          if (next === 0 && !isAlarmRinging) {
             setTmrRunning(false);
             triggerAlarm();
           }
@@ -351,7 +367,7 @@ export default function ExecutionRoom({ userId }: ExecutionRoomProps) {
       >
         <div className="absolute top-4 left-6 text-xs font-bold uppercase tracking-widest text-[var(--color-gold)] opacity-50">Custom Timer</div>
         
-        {!tmrRunning && tmrRemainingMs === 0 ? (
+        {!tmrRunning && tmrRemainingMs === 0 && !isAlarmRinging ? (
           <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
             <input 
               type="number"
@@ -375,23 +391,34 @@ export default function ExecutionRoom({ userId }: ExecutionRoomProps) {
         ) : (
           <div className="flex flex-col items-center">
             <h2 className="text-4xl sm:text-5xl font-light tracking-tight tabular-nums relative">
-              {formatMs(tmrRemainingMs)}
+              {isAlarmRinging ? "00:00" : formatMs(tmrRemainingMs)}
             </h2>
             <div className="flex items-center gap-4 mt-6">
-              <button 
-                onClick={toggleTimer}
-                className={`w-32 py-2 rounded-full text-sm font-bold transition-all shadow-md active:scale-95 ${tmrRunning ? 'bg-red-500/10 border border-red-500/30 text-red-400 backdrop-blur-md' : 'btn-gold text-white'}`}
-              >
-                {tmrRunning ? 'Pause' : 'Resume'}
-              </button>
-              
-              {(!tmrRunning || tmrRemainingMs === 0) && (
+              {isAlarmRinging ? (
                 <button 
-                  onClick={resetTimer}
-                  className="w-32 py-2 rounded-full text-sm font-bold bg-white/5 border border-white/10 text-[var(--color-text-secondary)] hover:bg-white/10 hover:text-white transition-all shadow-inner active:scale-95"
+                  onClick={stopAlarm}
+                  className="w-48 py-3 rounded-full text-base font-bold text-white bg-red-500 hover:bg-red-600 transition-all shadow-[0_0_30px_rgba(239,68,68,0.5)] animate-pulse active:scale-95"
                 >
-                  Reset Timer
+                  Stop Alarm
                 </button>
+              ) : (
+                <>
+                  <button 
+                    onClick={toggleTimer}
+                    className={`w-32 py-2 rounded-full text-sm font-bold transition-all shadow-md active:scale-95 ${tmrRunning ? 'bg-red-500/10 border border-red-500/30 text-red-400 backdrop-blur-md' : 'btn-gold text-white'}`}
+                  >
+                    {tmrRunning ? 'Pause' : 'Resume'}
+                  </button>
+                  
+                  {(!tmrRunning || tmrRemainingMs === 0) && (
+                    <button 
+                      onClick={resetTimer}
+                      className="w-32 py-2 rounded-full text-sm font-bold bg-white/5 border border-white/10 text-[var(--color-text-secondary)] hover:bg-white/10 hover:text-white transition-all shadow-inner active:scale-95"
+                    >
+                      Reset Timer
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
