@@ -24,10 +24,12 @@ jobs:
       - name: Install dependencies & Build Next.js
         run: |
           npm ci || npm install
-          npm run build
           
-          # Failsafe: Ensure Capacitor CLI and Android packages are installed 
+          # FIX: Install Capacitor BEFORE the Next.js build so the TypeScript compiler doesn't crash
           npm install @capacitor/core @capacitor/cli @capacitor/android
+          
+          # Now it is safe to build
+          npm run build
 
       # 4. Setup Java JDK 17 (Required to compile modern Android apps)
       - name: Setup Java JDK
