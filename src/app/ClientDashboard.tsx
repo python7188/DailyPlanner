@@ -234,7 +234,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
                 className="h-full"
               >
-                <ExecutionRoom />
+                <ExecutionRoom userId={userId} />
               </motion.div>
             ) : (
               <motion.div
