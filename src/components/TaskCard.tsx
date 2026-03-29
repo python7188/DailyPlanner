@@ -6,7 +6,7 @@ import {
   Check, Trash2,
   Dumbbell, BookOpen, Briefcase, Palette,
   Music, FlaskConical, Languages, CalendarDays,
-  AlertTriangle
+  AlertTriangle, FileText
 } from 'lucide-react';
 import type { Task } from '@/lib/supabase';
 import { getHighlightSegments } from '@/utils/timeParser';

@@ -11,12 +11,12 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import MacroGoals from '@/components/MacroGoals';
 import TaskList from '@/components/TaskList';
-// import ExecutionRoom from '@/components/ExecutionRoom';
+import ExecutionRoom from '@/components/ExecutionRoom';
 import AddTaskModal from '@/components/AddTaskModal';
 import GoldSparks from '@/components/GoldSparks';
 import CinematicReveal from '@/components/CinematicReveal';
 import ChronoAmbient from '@/components/ChronoAmbient';
-// import AudioBraindump from '@/components/AudioBraindump';
+import AudioBraindump from '@/components/AudioBraindump';
 import OfflineBadge from '@/components/OfflineBadge';
 import MilestoneSplash from '@/components/MilestoneSplash';
 import { Plus, Mic } from 'lucide-react';
@@ -234,7 +234,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
                 className="h-full"
               >
-                {/* <ExecutionRoom /> */}
+                <ExecutionRoom />
               </motion.div>
             ) : (
               <motion.div
@@ -262,7 +262,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
         <div className="sticky bottom-0 z-20 h-10 pointer-events-none bg-gradient-to-t from-[var(--color-bg)] to-transparent" />
 
         {/* Audio Braindump Mic */}
-        {/* <AudioBraindump 
+        <AudioBraindump 
           activeView={activeView}
           onTranscript={(text) => {
             const parsedItems = parseMultiTasks(text);
@@ -276,7 +276,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
               }
             });
           }} 
-        /> */}
+        />
 
         {/* FAB — Liquid Morphing Plus (Tasks Only) */}
         <AnimatePresence>
