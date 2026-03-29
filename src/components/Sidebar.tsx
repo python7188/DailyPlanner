@@ -172,7 +172,7 @@ export default function Sidebar({ activeView, onSelectView, selectedDate, onSele
                 <button
                   onClick={() => {
                     const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-                    router.push(`/room/${roomId}`);
+                    router.push(`/room?id=${roomId}`);
                   }}
                   className="w-full py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold tracking-wide rounded-lg text-xs uppercase hover:bg-emerald-500/20 transition-colors"
                 >
@@ -191,7 +191,7 @@ export default function Sidebar({ activeView, onSelectView, selectedDate, onSele
                   />
                   <button
                     onClick={() => {
-                      if (joinId.trim()) router.push(`/room/${joinId.trim()}`);
+                      if (joinId.trim()) router.push(`/room?id=${joinId.trim()}`);
                     }}
                     disabled={!joinId.trim()}
                     className="px-3 py-2 bg-[var(--color-bg-sidebar)] text-[var(--color-text-primary)] border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-xs rounded-lg hover:bg-[var(--color-bg-input)] transition-colors"

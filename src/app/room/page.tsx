@@ -1,30 +1,25 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+'use client';
+
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ExecutionRoom from '@/components/ExecutionRoom';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
-export default async function SquadRoomPage({ params }: { params: Promise<{ roomId: string }> }) {
-  const resolvedParams = await params;
-  const roomId = resolvedParams.roomId;
+function SquadRoomInner() {
+  const searchParams = useSearchParams();
+  const roomId = searchParams.get('id') || 'unnamed-room';
+  const [userId, setUserId] = useState<string>('guest');
 
-  const cookieStore = await cookies();
-  
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {
-          // Read-only in server components
-        },
-      },
-    }
-  );
-
-  const { data: { user }, error } = await supabase.auth.getUser();
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        setUserId(data.user.id);
+      }
+    };
+    fetchUser();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] relative overflow-hidden font-sans">
@@ -43,10 +38,22 @@ export default async function SquadRoomPage({ params }: { params: Promise<{ room
 
       <div className="w-full h-screen relative z-10 pt-16">
         <ExecutionRoom 
-          userId={user?.id || 'guest'} 
+          userId={userId} 
           roomId={roomId} 
         />
       </div>
     </div>
+  );
+}
+
+export default function SquadRoomPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)]">
+        <div className="w-8 h-8 border-2 border-[var(--color-gold)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <SquadRoomInner />
+    </Suspense>
   );
 }
