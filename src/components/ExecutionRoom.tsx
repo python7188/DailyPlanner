@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 
 interface ExecutionRoomProps {
   userId?: string | null;
+  onSessionComplete?: (sessionTitle: string) => void;
 }
 
 // Hooks for Ambient Mode
@@ -35,7 +36,7 @@ function useAmbientMode(timeoutMs = 10000) {
   return isAmbient;
 }
 
-export default function ExecutionRoom({ userId }: ExecutionRoomProps) {
+export default function ExecutionRoom({ userId, onSessionComplete }: ExecutionRoomProps) {
   const isAmbient = useAmbientMode(10000); 
 
   // --- TOP: STOPWATCH (75%) ---
@@ -136,6 +137,13 @@ export default function ExecutionRoom({ userId }: ExecutionRoomProps) {
             delta: points,
           });
         }
+      }
+
+      // 3. Create To-Do List Report Item
+      if (onSessionComplete) {
+        const timeDesc = formatMs(finalSessionTime * 1000);
+        const taskTitle = `[Session: ${timeDesc}] ${sessionNote || 'Focused Execution'}`;
+        onSessionComplete(taskTitle);
       }
 
       // Success Animation Flow
@@ -322,7 +330,7 @@ export default function ExecutionRoom({ userId }: ExecutionRoomProps) {
             className="absolute top-10 left-1/2 -translate-x-1/2 z-50 bg-green-500/20 text-green-200 border border-green-500/30 px-6 py-3 rounded-full backdrop-blur-md shadow-lg font-medium text-sm flex items-center gap-2"
           >
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-            Session Logged to Vault
+            Session Added to Tasks
           </motion.div>
         )}
       </AnimatePresence>
@@ -488,7 +496,7 @@ export default function ExecutionRoom({ userId }: ExecutionRoomProps) {
                   {isLogging ? (
                     <span className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
                   ) : (
-                    'Log to Vault'
+                    'Save to Tasks'
                   )}
                 </button>
               </div>

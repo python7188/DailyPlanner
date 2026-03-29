@@ -234,7 +234,14 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
                 className="h-full"
               >
-                <ExecutionRoom userId={userId} />
+                <ExecutionRoom 
+                  userId={userId} 
+                  onSessionComplete={(title) => {
+                    addTask(title, todayStrForInit);
+                    // Provide a nice haptic tick if available
+                    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
+                  }}
+                />
               </motion.div>
             ) : (
               <motion.div
