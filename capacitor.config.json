@@ -1,0 +1,6 @@
+{
+  "appId": "com.midnightgrind.app",
+  "appName": "Midnight Grind",
+  "webDir": "out",
+  "bundledWebRuntime": false
+}
