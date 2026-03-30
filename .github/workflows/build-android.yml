@@ -60,6 +60,9 @@ jobs:
           # Make Gradle executable
           chmod +x ./gradlew
           
+          # Fix Android Kotlin Duplicate Classes Error (Capacitor vs Kotlin Stdlib 1.8.x clash)
+          echo -e "\nconfigurations.all {\n    resolutionStrategy {\n        force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'\n        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'\n        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'\n    }\n}" >> app/build.gradle
+          
           # Build a Debug APK
           ./gradlew assembleDebug
 
