@@ -83,7 +83,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
   }, [tasks, isGhost, isLoading]);
 
   const addTask = useCallback(
-    async (title: string, targetDate: string, timeTargetMinutes?: number) => {
+    async (title: string, targetDate: string, startTime?: string, endTime?: string, isDaily?: boolean) => {
       const fallbackId = () => {
         if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -92,13 +92,15 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         });
       };
 
-      const newTask: Task = {
+      const newTask: Task & { start_time?: string; end_time?: string; is_daily?: boolean } = {
         id: fallbackId(),
         user_id: userId || 'demo',
         title,
         is_completed: false,
         target_date: targetDate,
-        time_target_minutes: timeTargetMinutes || undefined,
+        start_time: startTime,
+        end_time: endTime,
+        is_daily: isDaily,
         created_at: new Date().toISOString(),
         order_index: tasks.length,
       };
@@ -108,7 +110,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
 
       if (!isDemo && !isGhost && userId) {
         // Build payload with only essential columns first.
-        // If order_index / time_target_minutes columns don't exist in your DB,
+        // If order_index / start_time columns don't exist in your DB,
         // the insert will fail and the task will be rolled back.
         // Run the SQL migration in fix-tasks-schema.sql to add missing columns.
         const payload: Record<string, unknown> = {
@@ -118,9 +120,9 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
           is_completed: false,
           target_date: targetDate,
         };
-        if (timeTargetMinutes) {
-          payload.time_target_minutes = timeTargetMinutes;
-        }
+        if (startTime) payload.start_time = startTime;
+        if (endTime) payload.end_time = endTime;
+        if (isDaily !== undefined) payload.is_daily = isDaily;
 
         const { error } = await supabase.from('tasks').insert(payload);
         if (error) {

@@ -4,10 +4,21 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CalendarDays, Sparkles } from 'lucide-react';
 
+function formatAMPM(time: string) {
+  if (!time) return undefined;
+  const [hoursStr, minutesStr] = time.split(':');
+  if (!hoursStr || !minutesStr) return undefined;
+  let hours = parseInt(hoursStr, 10);
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  return `${hours}:${minutesStr} ${ampm}`;
+}
+
 interface AddTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (title: string, targetDate: string, timeTargetMinutes?: number) => void;
+  onAdd: (title: string, targetDate: string, startTime?: string, endTime?: string, isDaily?: boolean) => void;
   selectedDate: string | null;
 }
 
@@ -15,22 +26,27 @@ export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: A
   const todayStr = new Date().toISOString().split('T')[0];
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(selectedDate || todayStr);
-  const [minutes, setMinutes] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [isDaily, setIsDaily] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setTitle('');
       setDate(selectedDate || todayStr);
-      setMinutes('');
+      setStartTime('');
+      setEndTime('');
+      setIsDaily(false);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen, selectedDate, todayStr]);
 
   const handleSubmit = () => {
     if (!title.trim()) return;
-    const parsedMins = parseInt(minutes, 10);
-    onAdd(title.trim(), date, !isNaN(parsedMins) && parsedMins > 0 ? parsedMins : undefined);
+    const formattedStart = formatAMPM(startTime);
+    const formattedEnd = formatAMPM(endTime);
+    onAdd(title.trim(), date, formattedStart, formattedEnd, isDaily);
     onClose();
   };
 
@@ -100,41 +116,64 @@ export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: A
                   </div>
                 </div>
 
-                {/* Due & Duration Row */}
+                {/* Target Date */}
+                <div>
+                  <label className="block text-[10px] font-medium text-[var(--color-text-ghost)] uppercase tracking-widest mb-2">
+                    Target Date
+                  </label>
+                  <div className="relative">
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-ghost)]" />
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-border-gold)] focus:ring-2 focus:ring-[var(--color-gold-dim)] transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Time Blocking Row */}
                 <div className="flex gap-4">
-                  {/* Date Picker */}
                   <div className="flex-1">
                     <label className="block text-[10px] font-medium text-[var(--color-text-ghost)] uppercase tracking-widest mb-2">
-                      Target Date
+                      Start Time
                     </label>
-                    <div className="relative">
-                      <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-ghost)]" />
-                      <input
-                        type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-border-gold)] focus:ring-2 focus:ring-[var(--color-gold-dim)] transition-all"
-                      />
-                    </div>
+                    <input
+                      type="time"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      className="w-full px-4 py-3 bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-border-gold)] focus:ring-2 focus:ring-[var(--color-gold-dim)] transition-all appearance-none"
+                    />
                   </div>
-
-                  {/* Duration */}
-                  <div className="w-1/3">
+                  <div className="flex-1">
                     <label className="block text-[10px] font-medium text-[var(--color-text-ghost)] uppercase tracking-widest mb-2">
-                      Min(Opt)
+                      End Time
                     </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        min="1"
-                        placeholder="e.g. 45"
-                        value={minutes}
-                        onChange={(e) => setMinutes(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                        className="w-full px-4 py-3 bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-xl text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-ghost)] focus:outline-none focus:border-[var(--color-border-gold)] focus:ring-2 focus:ring-[var(--color-gold-dim)] transition-all text-center"
-                      />
-                    </div>
+                    <input
+                      type="time"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      className="w-full px-4 py-3 bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-border-gold)] focus:ring-2 focus:ring-[var(--color-gold-dim)] transition-all appearance-none"
+                    />
                   </div>
+                </div>
+
+                {/* Daily Habit Toggle */}
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide">Daily Habit</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsDaily(!isDaily)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      isDaily ? 'bg-[#eaddbe]' : 'bg-[var(--color-border)]'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        isDaily ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
                 </div>
               </div>
 

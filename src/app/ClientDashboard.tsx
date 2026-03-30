@@ -384,6 +384,10 @@ function MobileNav({
   onSelectDate: (d: string | null) => void;
   tasks: { target_date: string; is_completed: boolean }[];
 }) {
+  const router = useRouter();
+  const [showSquadMenu, setShowSquadMenu] = useState(false);
+  const [joinId, setJoinId] = useState('');
+
   const todayStr = new Date().toISOString().split('T')[0];
   const dates = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(Date.now() + i * 86400000);
@@ -399,17 +403,61 @@ function MobileNav({
   });
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-[var(--color-bg-sidebar)]/95 backdrop-blur-lg border-t border-[var(--color-border)] px-4 py-3 z-30">
-      <div className="flex flex-col gap-3">
+    <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-[var(--color-bg-sidebar)]/95 backdrop-blur-lg border-t border-[var(--color-border)] px-4 py-3 z-50">
+      <div className="flex flex-col gap-3 relative">
+        {/* Squad Menu Popup */}
+        <AnimatePresence>
+          {showSquadMenu && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute bottom-full left-0 w-full mb-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl py-3 px-3 shadow-2xl flex flex-col gap-3 backdrop-blur-xl"
+            >
+              <button
+                onClick={() => {
+                  const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+                  router.push(`/room?id=${roomId}`);
+                }}
+                className="w-full py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold tracking-wide rounded-lg text-xs uppercase hover:bg-emerald-500/20 transition-colors"
+              >
+                Create Room
+              </button>
+              
+              <div className="w-full h-px bg-[var(--color-border)]" />
+              
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter Room ID..."
+                  value={joinId}
+                  onChange={(e) => setJoinId(e.target.value.toUpperCase())}
+                  className="flex-1 bg-[var(--color-bg-input)] text-[var(--color-text-primary)] text-xs font-mono px-3 py-2 rounded-lg border border-[var(--color-border)] outline-none focus:border-[var(--color-gold)] transition-colors placeholder:font-sans"
+                />
+                <button
+                  onClick={() => {
+                    if (joinId.trim()) router.push(`/room?id=${joinId.trim()}`);
+                  }}
+                  disabled={!joinId.trim()}
+                  className="px-3 py-2 bg-[var(--color-bg-sidebar)] text-[var(--color-text-primary)] border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-xs rounded-lg hover:bg-[var(--color-bg-input)] transition-colors"
+                >
+                  Join
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Navigation Tabs */}
         <div className="flex bg-[var(--color-bg-input)] rounded-full p-1 border border-[var(--color-border)]">
           <button
             onClick={() => {
               onSelectView('tasks');
               onSelectDate(todayStr);
+              setShowSquadMenu(false);
             }}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-              activeView === 'tasks'
+            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all ${
+              activeView === 'tasks' && !showSquadMenu
                 ? 'bg-white text-[var(--color-gold)] shadow-sm ring-1 ring-black/5'
                 : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
             }`}
@@ -417,9 +465,12 @@ function MobileNav({
             Tasks
           </button>
           <button
-            onClick={() => onSelectView('goals')}
-            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-              activeView === 'goals'
+            onClick={() => {
+              onSelectView('goals');
+              setShowSquadMenu(false);
+            }}
+            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all ${
+              activeView === 'goals' && !showSquadMenu
                 ? 'bg-white text-[var(--color-gold)] shadow-sm ring-1 ring-black/5'
                 : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
             }`}
@@ -427,20 +478,33 @@ function MobileNav({
             Goals
           </button>
           <button
-            onClick={() => onSelectView('execution')}
-            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-              activeView === 'execution'
-                ? 'bg-[var(--color-gold)] text-white shadow-[var(--shadow-gold)]'
+            onClick={() => {
+              onSelectView('execution');
+              setShowSquadMenu(false);
+            }}
+            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all ${
+              activeView === 'execution' && !showSquadMenu
+                ? 'bg-[var(--color-gold-dim)] border border-[var(--color-border-gold)] text-[var(--color-gold)]'
                 : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
             }`}
           >
             Execute
           </button>
+          <button
+            onClick={() => setShowSquadMenu(!showSquadMenu)}
+            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all ${
+              showSquadMenu
+                ? 'bg-[var(--color-gold)] text-white shadow-[var(--shadow-gold)]'
+                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
+            }`}
+          >
+            Squad
+          </button>
         </div>
 
-        {/* Date Selector (Only visible in Tasks view) */}
+        {/* Date Selector (Only visible in Tasks view and Squad Menu closed) */}
         <AnimatePresence>
-          {activeView === 'tasks' && (
+          {activeView === 'tasks' && !showSquadMenu && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
