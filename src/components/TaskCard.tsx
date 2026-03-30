@@ -341,7 +341,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
               {/* ── Time Block Bracket UI ── */}
               {(task.start_time || task.end_time) && (
                 <span className="ml-2 flex items-center space-x-1">
-                  <span className="text-[var(--color-text-ghost)] font-medium">[</span>
+                  <span className="text-black text-xl font-light leading-none translate-y-[-1px]">[</span>
                   {task.start_time && (
                     <span className="px-2 py-1 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded-md text-sm font-semibold">
                       {formatAMPM(task.start_time)}
@@ -355,7 +355,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                       {formatAMPM(task.end_time)}
                     </span>
                   )}
-                  <span className="text-[var(--color-text-ghost)] font-medium">]</span>
+                  <span className="text-black text-xl font-light leading-none translate-y-[-1px]">]</span>
                   {task.start_time && task.end_time && (
                     <span className="ml-2 px-2 py-1 bg-[#eaddbe]/30 text-[#8b6f3b] text-sm font-bold rounded-md">
                       {calculateDuration(task.start_time, task.end_time)}

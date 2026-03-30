@@ -87,6 +87,9 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   // Milestone Splash state
   const [milestoneVal, setMilestoneVal] = useState<number | null>(null);
 
+  // Drag Constraints Ref
+  const constraintsRef = useRef<HTMLDivElement>(null);
+
   // Haptic feedback
   const haptic = useCallback((pattern: number | number[]) => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -222,7 +225,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen relative">
+      <div ref={constraintsRef} className="flex-1 flex flex-col min-h-screen relative">
         <Header 
           firstName={firstName} 
           onSignOut={handleSignOut} 
@@ -324,13 +327,17 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
         <AnimatePresence>
           {activeView === 'tasks' && (
             <motion.button
+              drag
+              dragConstraints={constraintsRef}
+              dragElastic={0.1}
+              dragMomentum={false}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               whileHover={{ scale: 1.12, rotate: 90 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => setShowAddModal(true)}
-              className="fixed bottom-[130px] lg:bottom-8 right-6 lg:right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-40 cursor-pointer hover:brightness-110"
+              className="absolute bottom-[130px] lg:bottom-8 right-6 lg:right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-40 touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
               style={{ filter: 'url(#gooey)' }}
             >
               <Plus className="w-6 h-6 text-white" />

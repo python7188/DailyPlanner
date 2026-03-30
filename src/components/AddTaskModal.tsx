@@ -60,7 +60,7 @@ export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: A
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
           />
 
           {/* Modal */}
@@ -69,9 +69,9 @@ export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: A
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] w-[calc(100%-2rem)] max-w-md"
           >
-            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl shadow-2xl overflow-hidden">
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl shadow-2xl flex flex-col max-h-[80vh] sm:max-h-[90vh] overflow-hidden">
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
                 <div className="flex items-center gap-2">
@@ -87,7 +87,7 @@ export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: A
               </div>
 
               {/* Body */}
-              <div className="px-6 py-5 space-y-4">
+              <div className="px-6 py-5 space-y-4 overflow-y-auto">
                 {/* Title Input */}
                 <div>
                   <label className="block text-[10px] font-medium text-[var(--color-text-ghost)] uppercase tracking-widest mb-2">
@@ -180,7 +180,7 @@ export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: A
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--color-border)]">
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-card)] shrink-0">
                 <button
                   onClick={onClose}
                   className="px-5 py-2.5 rounded-xl text-sm font-medium text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:bg-[var(--color-bg-input)] transition-all cursor-pointer hover:brightness-110"
