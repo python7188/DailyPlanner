@@ -53,7 +53,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-[100dvh] flex items-center justify-center text-white">Loading...</div>}>
+    <Suspense fallback={<div className="flex-1 flex items-center justify-center w-full text-white">Loading...</div>}>
       <LoginContent />
     </Suspense>
   );

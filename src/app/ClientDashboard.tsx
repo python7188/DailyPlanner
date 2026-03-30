@@ -174,7 +174,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   // Loading
   if (tasksLoading) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-[var(--color-bg)]">
+      <div className="flex-1 flex items-center justify-center w-full bg-[var(--color-bg)]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-2 border-[var(--color-gold)] border-t-transparent rounded-full animate-spin" />
           <span className="text-xs text-[var(--color-text-ghost)] uppercase tracking-widest">Loading tasks...</span>
@@ -189,7 +189,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   const completedToday = todayTasks.filter((t) => t.is_completed).length;
 
   return (
-    <div ref={constraintsRef} className="flex flex-col lg:flex-row h-[100dvh] bg-gray-50 overflow-hidden min-w-[380px]">
+    <div ref={constraintsRef} className="flex-1 flex flex-col lg:flex-row w-full bg-gray-50 overflow-hidden min-w-[380px]">
       {/* Chrono-Ambient Background */}
       {/* <ChronoAmbient /> */}
 
