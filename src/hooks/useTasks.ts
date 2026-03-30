@@ -46,6 +46,15 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
     if (!userId) return;
 
     const fetchTasks = async () => {
+      if (userId === 'ghost-001') {
+        try {
+          const ghostTasks = localStorage.getItem('midnight_ghost_tasks');
+          if (ghostTasks) setTasks(JSON.parse(ghostTasks));
+        } catch { /* ignore parsing errors */ }
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
@@ -81,10 +90,17 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         order_index: tasks.length,
       };
 
-      // Optimistic update
-      setTasks((prev) => [newTask, ...prev]);
+      // Optimistic upate (FIFO - Append to bottom)
+      setTasks((prev) => {
+        const updatedList = [...prev, newTask];
+        if (userId === 'ghost-001') {
+          localStorage.setItem('midnight_ghost_tasks', JSON.stringify(updatedList));
+        }
+        return updatedList;
+      });
 
-      if (!isDemo && userId) {
+      // Background DB sync if not a local ghost or demo account
+      if (!isDemo && userId && userId !== 'ghost-001') {
         const payload: any = {
           id: newTask.id,
           user_id: userId,

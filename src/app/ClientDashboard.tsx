@@ -341,12 +341,12 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
               dragElastic={0.1}
               dragMomentum={false}
               initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
+              animate={{ scale: 1, opacity: 1, x: isMobile ? 0 : undefined, y: isMobile ? 0 : undefined }}
               exit={{ scale: 0, opacity: 0 }}
               whileHover={{ scale: 1.12, rotate: 90 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => setShowAddModal(true)}
-              className="fixed bottom-24 right-4 md:absolute md:top-1/2 md:left-1/2 md:-ml-[28px] md:-mt-[28px] md:bottom-auto md:right-auto w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-40 touch-none md:cursor-grab md:active:cursor-grabbing hover:brightness-110"
+              className="fixed z-50 !right-6 !bottom-32 !left-auto !top-auto !m-0 md:!absolute md:!top-1/2 md:!left-1/2 md:!-ml-[28px] md:!-mt-[28px] md:!bottom-auto md:!right-auto w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center touch-none md:cursor-grab md:active:cursor-grabbing hover:brightness-110"
               style={{ filter: 'url(#gooey)' }}
             >
               <Plus className="w-6 h-6 text-white" />

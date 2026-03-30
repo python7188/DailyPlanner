@@ -327,12 +327,12 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                 ? 'text-red-400 kinetic-overdue'
                 : 'text-[var(--color-text-primary)]'
             }`}>
-              <span className="mr-1 truncate md:overflow-visible md:whitespace-normal flex-1 md:flex-none">
+              <span className="pr-2 whitespace-normal break-words flex-1 md:flex-none">
                 {highlighted.map((seg, j) =>
                   !seg.isTime ? (
                     <span key={j}>{seg.text}</span>
                   ) : (
-                    <span key={j} className="gold-pill font-bold px-1.5 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] mx-1 text-sm shadow-[0_0_10px_rgba(212,161,39,0.2)]">
+                    <span key={j} className="gold-pill font-bold px-1.5 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] mx-1 text-sm shadow-[0_0_10px_rgba(212,161,39,0.2)] whitespace-nowrap">
                       {seg.text}
                     </span>
                   )
