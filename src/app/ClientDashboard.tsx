@@ -189,7 +189,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   const completedToday = todayTasks.filter((t) => t.is_completed).length;
 
   return (
-    <div ref={constraintsRef} className="flex-1 flex flex-col lg:flex-row w-full bg-gray-50 overflow-hidden min-w-[380px]">
+    <div ref={constraintsRef} className="flex-1 flex flex-col lg:flex-row w-full bg-gray-50 overflow-hidden min-h-0 min-w-[380px]">
       {/* Chrono-Ambient Background */}
       {/* <ChronoAmbient /> */}
 
@@ -214,7 +214,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
       </AnimatePresence>
 
       {/* Sidebar — hidden on mobile */}
-      <div className="hidden lg:flex">
+      <div className="hidden lg:flex h-full min-h-0">
         <Sidebar 
           activeView={activeView}
           onSelectView={setActiveView}
@@ -225,7 +225,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden relative">
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0 relative">
         <Header 
           firstName={firstName} 
           onSignOut={handleSignOut} 
@@ -239,7 +239,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
         <div className="sticky top-[60px] z-20 h-6 pointer-events-none bg-gradient-to-b from-[var(--color-bg)] to-transparent" />
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 pb-32 scroll-smooth" id="main-scroll">
+        <div className="flex-1 overflow-y-auto px-4 py-6 pb-32 scroll-smooth min-h-0" id="main-scroll">
           <AnimatePresence mode="wait">
             {activeView === 'goals' ? (
               <motion.div

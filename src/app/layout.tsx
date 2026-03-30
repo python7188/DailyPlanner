@@ -20,9 +20,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="font-sans antialiased h-[100dvh] w-full overflow-hidden flex flex-col bg-[var(--color-bg)]">
-        <main className="flex-1 flex flex-col relative overflow-hidden">
+    <html lang="en" className={`fixed inset-0 w-full h-full overflow-hidden ${inter.variable}`}>
+      <body className="w-full h-full overflow-hidden flex flex-col bg-[var(--color-bg)] font-sans antialiased">
+        <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
           {children}
         </main>
       </body>
