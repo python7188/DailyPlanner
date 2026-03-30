@@ -319,15 +319,15 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
           />
         ) : (
           /* Animated Strike-Through wrapper */
-          <div className="relative inline-block">
-            <p className={`text-base font-medium leading-snug transition-colors duration-300 flex items-center flex-wrap ${
+          <div className="relative inline-block w-full md:w-auto">
+            <p className={`text-base font-medium leading-snug transition-colors duration-300 flex flex-row items-center flex-nowrap md:flex-wrap justify-between md:justify-start w-full md:w-auto ${
               task.is_completed
                 ? 'text-[var(--color-text-ghost)]'
                 : isOverdue
                 ? 'text-red-400 kinetic-overdue'
                 : 'text-[var(--color-text-primary)]'
             }`}>
-              <span className="mr-1">
+              <span className="mr-1 truncate md:overflow-visible md:whitespace-normal flex-1 md:flex-none">
                 {highlighted.map((seg, j) =>
                   !seg.isTime ? (
                     <span key={j}>{seg.text}</span>
@@ -341,7 +341,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
 
               {/* ── Time Block Bracket UI ── */}
               {(task.start_time || task.end_time) && (
-                <span className="ml-2 flex items-center space-x-1">
+                <span className="ml-2 flex flex-row items-center space-x-1 shrink-0 whitespace-nowrap">
                   <span className="text-black text-xl font-light leading-none translate-y-[-1px]">[</span>
                   {task.start_time && (
                     <span className="px-2 py-1 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded-md text-sm font-semibold">
