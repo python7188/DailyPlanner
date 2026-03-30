@@ -446,8 +446,8 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
   }, [isExamMode, tmrRunning, onDisciplinePenalty]);
 
   return (
-    <div className="flex flex-col md:flex-row w-full min-h-[calc(100dvh-200px)] md:h-full bg-[var(--color-bg)] relative">
-      <div className={`flex flex-col relative transition-all duration-500 shrink-0 ${roomId ? 'w-full h-[55vh] md:h-full md:w-3/4' : 'flex-1 w-full min-h-[calc(100dvh-200px)] md:h-full'}`}>
+    <div className="flex flex-col md:flex-row w-full h-full bg-[var(--color-bg)] relative overflow-y-auto md:overflow-hidden">
+      <div className={`flex flex-col relative transition-all duration-500 overflow-hidden shrink-0 ${roomId ? 'w-full h-[55vh] md:h-full md:w-3/4' : 'w-full h-full'}`}>
 
       {/* SUCCESS TOAST OVERLAY */}
       <AnimatePresence>
@@ -464,8 +464,8 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
         )}
       </AnimatePresence>
 
-      {/* TOP: PREMIUM STOPWATCH */}
-      <div className="flex-1 md:flex-[3] flex flex-col items-center justify-center relative p-4 sm:p-8 shrink-0 min-h-[50%]">
+      {/* 75% TOP: PREMIUM STOPWATCH */}
+      <div className="flex-[3] flex flex-col items-center justify-center relative p-4 sm:p-8">
         <h1 className="text-7xl sm:text-[120px] md:text-[180px] font-light tracking-tighter tabular-nums drop-shadow-sm transition-colors duration-1000" style={{ color: isAmbient && swRunning && !showDebrief ? 'var(--color-gold)' : 'var(--color-text-primary)' }}>
           {formatMs(swElapsed)}
         </h1>
@@ -496,10 +496,10 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
         </motion.div>
       </div>
 
-      {/* BOTTOM: CUSTOM TIMER */}
+      {/* 25% BOTTOM: CUSTOM TIMER */}
       {!roomId && (
         <motion.div 
-          className="flex-1 md:flex-[1] shrink-0 bg-[var(--color-bg-sidebar)]/80 backdrop-blur-md border-t border-[var(--color-border)] flex flex-col items-center justify-center p-8 transition-opacity duration-1000 relative"
+          className="flex-[1] bg-[var(--color-bg-sidebar)]/80 backdrop-blur-md border-t border-[var(--color-border)] flex flex-col items-center justify-center p-8 transition-opacity duration-1000 relative"
           initial={false}
           animate={{ opacity: isAmbient && (swRunning || tmrRunning) && !showDebrief ? 0.2 : 1 }}
         >

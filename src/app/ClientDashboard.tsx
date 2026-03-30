@@ -174,7 +174,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   // Loading
   if (tasksLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center w-full bg-[var(--color-bg)]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-2 border-[var(--color-gold)] border-t-transparent rounded-full animate-spin" />
           <span className="text-xs text-[var(--color-text-ghost)] uppercase tracking-widest">Loading tasks...</span>
@@ -189,7 +189,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   const completedToday = todayTasks.filter((t) => t.is_completed).length;
 
   return (
-    <div ref={constraintsRef} className="fixed inset-0 flex flex-col lg:flex-row bg-gray-50 overflow-hidden min-w-[380px] z-0">
+    <div ref={constraintsRef} className="flex flex-col lg:flex-row h-[100dvh] bg-gray-50 overflow-hidden min-w-[380px]">
       {/* Chrono-Ambient Background */}
       {/* <ChronoAmbient /> */}
 
@@ -214,7 +214,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
       </AnimatePresence>
 
       {/* Sidebar — hidden on mobile */}
-      <div className="hidden lg:flex h-full shrink-0">
+      <div className="hidden lg:flex">
         <Sidebar 
           activeView={activeView}
           onSelectView={setActiveView}
@@ -225,7 +225,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+      <div className="flex-1 flex flex-col overflow-hidden relative">
         <Header 
           firstName={firstName} 
           onSignOut={handleSignOut} 
@@ -239,7 +239,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
         <div className="sticky top-[60px] z-20 h-6 pointer-events-none bg-gradient-to-b from-[var(--color-bg)] to-transparent" />
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 pb-32 scroll-smooth min-h-0" id="main-scroll">
+        <div className="flex-1 overflow-y-auto px-4 py-6 pb-32 scroll-smooth" id="main-scroll">
           <AnimatePresence mode="wait">
             {activeView === 'goals' ? (
               <motion.div
@@ -267,6 +267,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
                 animate={{ opacity: 1, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, filter: 'blur(8px)' }}
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
+                className="h-full"
               >
                 <ExecutionRoom 
                   userId={userId} 
@@ -300,9 +301,6 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* THE FIX: Invisible Ghost Spacer to perfectly clear the bottom navigation menu / blur mask safely on WebKit/iOS */}
-          <div className="h-32 sm:h-40 w-full flex-shrink-0" aria-hidden="true" />
         </div>
 
         {/* Progressive Blur Bottom Mask */}
@@ -325,24 +323,26 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
           }} 
         />
 
-        {/* FAB — Liquid Morphing Plus (Kept mounted to preserve drag state) */}
-        <motion.button
-          drag
-          dragMomentum={false}
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ 
-            scale: (activeView === 'tasks' && !showAddModal) ? 1 : 0, 
-            opacity: (activeView === 'tasks' && !showAddModal) ? 1 : 0 
-          }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          whileHover={{ scale: 1.12, rotate: 90 }}
-          whileTap={{ scale: 0.92 }}
-          onClick={() => setShowAddModal(true)}
-          style={{ pointerEvents: (activeView === 'tasks' && !showAddModal) ? 'auto' : 'none' }}
-          className="fixed bottom-[140px] right-4 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-[99999] touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
-        >
-          <Plus className="w-6 h-6 text-white" />
-        </motion.button>
+        {/* FAB — Liquid Morphing Plus (Tasks Only) */}
+        <AnimatePresence>
+          {activeView === 'tasks' && !showAddModal && (
+            <motion.button
+              drag
+              dragConstraints={constraintsRef}
+              dragElastic={0.1}
+              dragMomentum={false}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              whileHover={{ scale: 1.12, rotate: 90 }}
+              whileTap={{ scale: 0.92 }}
+              onClick={() => setShowAddModal(true)}
+              className="fixed bottom-[140px] right-4 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-[99999] touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
+            >
+              <Plus className="w-6 h-6 text-white" />
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         {/* SVG Gooey Filter */}
         <svg className="fixed" width="0" height="0" aria-hidden="true">

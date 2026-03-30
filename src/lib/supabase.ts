@@ -16,8 +16,6 @@ export interface Task {
   created_at: string;
   order_index?: number;
   time_target_minutes?: number;
-  start_time?: string;
-  end_time?: string;
 }
 
 export interface Goal {

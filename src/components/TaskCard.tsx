@@ -14,7 +14,6 @@ import { getHighlightSegments } from '@/utils/timeParser';
 interface TaskCardProps {
   task: Task;
   onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
   onUpdateTitle: (id: string, title: string) => void;
   onTimeboxClick?: (minutes: number) => void;
   isToday: boolean;
@@ -339,9 +338,9 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                 )}
               </span>
 
-              {/* ── Desktop/Laptop Time Block (Hidden on Mobile) ── */}
+              {/* ── Time Block Bracket UI ── */}
               {(task.start_time || task.end_time) && (
-                <span className="hidden sm:inline-flex ml-2 items-center space-x-1">
+                <span className="ml-2 flex items-center space-x-1">
                   <span className="text-black text-xl font-light leading-none translate-y-[-1px]">[</span>
                   {task.start_time && (
                     <span className="px-2 py-1 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded-md text-sm font-semibold">
@@ -401,32 +400,6 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
         >
           {task.time_target_minutes}m
         </button>
-      )}
-
-      {/* ── Mobile Scheduled Timestamps (Right Side Highlight) ── */}
-      {(task.start_time || task.end_time) && (
-        <div className="flex sm:hidden flex-shrink-0 items-center gap-[2px] bg-[var(--color-gold-dim)]/50 border border-[var(--color-gold)]/40 px-2 py-1 rounded-md shadow-sm opacity-95 transition-opacity hover:opacity-100">
-          <span className="text-[var(--color-gold)] text-sm font-bold leading-none translate-y-[-1px]">[</span>
-          {task.start_time && (
-            <span className="text-[#8b6f3b] text-[10px] sm:text-xs font-black tracking-tight whitespace-nowrap">
-              {formatAMPM(task.start_time)}
-            </span>
-          )}
-          {task.start_time && task.end_time && (
-            <span className="text-[var(--color-gold)] font-bold opacity-70 scale-75 mx-[1px]">-</span>
-          )}
-          {task.end_time && (
-            <span className="text-[#8b6f3b] text-[10px] sm:text-xs font-black tracking-tight whitespace-nowrap">
-              {formatAMPM(task.end_time)}
-            </span>
-          )}
-          <span className="text-[var(--color-gold)] text-sm font-bold leading-none translate-y-[-1px]">]</span>
-          {task.start_time && task.end_time && (
-            <span className="ml-[3px] text-[var(--color-gold)] drop-shadow-sm text-[10px] sm:text-xs font-extrabold whitespace-nowrap">
-              {calculateDuration(task.start_time, task.end_time)}
-            </span>
-          )}
-        </div>
       )}
 
       {/* ── Date pill ── */}
