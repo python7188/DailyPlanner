@@ -529,7 +529,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
               </div>
               
               {!tmrRunning && tmrRemainingMs === 0 && (
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-max">
+                <div className="mt-6 sm:mt-8 w-max z-10">
                   <button 
                     onClick={promptExam}
                     className="px-6 py-2 border border-red-500/30 hover:border-red-500/80 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs rounded-lg shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_25px_rgba(239,68,68,0.4)] transition-all flex items-center justify-center gap-3"

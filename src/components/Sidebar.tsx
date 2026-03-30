@@ -29,8 +29,10 @@ export default function Sidebar({ activeView, onSelectView, selectedDate, onSele
     const map: Record<string, number> = {};
     tasks.forEach((t) => {
       if (!t.is_completed) {
-        const dateStr = t.target_date.split('T')[0];
-        map[dateStr] = (map[dateStr] || 0) + 1;
+        const dateStr = (t.target_date || '').split('T')[0];
+        if (dateStr) {
+          map[dateStr] = (map[dateStr] || 0) + 1;
+        }
       }
     });
     return map;

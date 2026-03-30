@@ -74,7 +74,7 @@ export default function TaskList({
     const map: Record<string, number> = {};
     tasks.forEach((t) => {
       if (!t.is_completed) {
-        const dateStr = t.target_date.split('T')[0];
+        const dateStr = (t.target_date || '').split('T')[0];
         map[dateStr] = (map[dateStr] || 0) + 1;
       }
     });
@@ -92,7 +92,7 @@ export default function TaskList({
   const groupedPending = useMemo(() => {
     const groups: Record<string, Task[]> = {};
     pendingTasks.forEach((t) => {
-      const dateStr = t.target_date.split('T')[0];
+      const dateStr = (t.target_date || '').split('T')[0];
       if (!groups[dateStr]) groups[dateStr] = [];
       groups[dateStr].push(t);
     });

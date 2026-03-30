@@ -13,8 +13,10 @@ export default function ConsistencyHeatmap({ tasks }: ConsistencyHeatmapProps) {
     const completedByDate: Record<string, number> = {};
     tasks.forEach((t) => {
       if (t.is_completed) {
-        const dateStr = t.target_date.split('T')[0];
-        completedByDate[dateStr] = (completedByDate[dateStr] || 0) + 1;
+        const dateStr = (t.target_date || '').split('T')[0];
+        if (dateStr) {
+          completedByDate[dateStr] = (completedByDate[dateStr] || 0) + 1;
+        }
       }
     });
 

@@ -62,8 +62,16 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
 
   const addTask = useCallback(
     async (title: string, targetDate: string, timeTargetMinutes?: number) => {
+      const fallbackId = () => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+          const r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+      };
+
       const newTask: Task = {
-        id: crypto.randomUUID(),
+        id: fallbackId(),
         user_id: userId || 'demo',
         title,
         is_completed: false,
@@ -216,8 +224,16 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
 
   const addGoal = useCallback(
     async (title: string, startValue: number, targetValue: number) => {
+      const fallbackId = () => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+          const r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+      };
+
       const newGoal: Goal = {
-        id: crypto.randomUUID(),
+        id: fallbackId(),
         user_id: userId || 'demo',
         title,
         start_value: startValue,
@@ -268,8 +284,16 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
 
   const addSubTask = useCallback(
     async (goalId: string, title: string, achievedValue: number) => {
+      const fallbackId = () => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+          const r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+      };
+
       const newSub: SubTask = {
-        id: crypto.randomUUID(),
+        id: fallbackId(),
         goal_id: goalId,
         title,
         achieved_value: achievedValue,

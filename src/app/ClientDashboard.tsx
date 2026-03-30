@@ -162,7 +162,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   }
 
   const todayStr = new Date().toISOString().split('T')[0];
-  const todayTasks = tasks.filter((t) => t.target_date.split('T')[0] === todayStr);
+  const todayTasks = tasks.filter((t) => (t.target_date || '').split('T')[0] === todayStr);
   const pendingToday = todayTasks.filter((t) => !t.is_completed).length;
   const completedToday = todayTasks.filter((t) => t.is_completed).length;
 
@@ -374,7 +374,7 @@ function MobileNav({
   const taskCountByDate: Record<string, number> = {};
   tasks.forEach((t) => {
     if (!t.is_completed) {
-      const dateStr = t.target_date.split('T')[0];
+      const dateStr = (t.target_date || '').split('T')[0];
       taskCountByDate[dateStr] = (taskCountByDate[dateStr] || 0) + 1;
     }
   });
