@@ -328,8 +328,6 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
           {activeView === 'tasks' && !showAddModal && (
             <motion.button
               drag
-              dragConstraints={constraintsRef}
-              dragElastic={0.1}
               dragMomentum={false}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
