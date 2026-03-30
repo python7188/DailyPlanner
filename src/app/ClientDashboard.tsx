@@ -267,7 +267,6 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
                 animate={{ opacity: 1, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, filter: 'blur(8px)' }}
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
-                className="h-full"
               >
                 <ExecutionRoom 
                   userId={userId} 
