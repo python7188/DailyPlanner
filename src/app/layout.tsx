@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased h-[100dvh] w-full overflow-hidden flex flex-col bg-[var(--color-bg)]">
-        <main className="flex-1 flex flex-col relative">
+        <main className="flex-1 flex flex-col relative overflow-hidden">
           {children}
         </main>
       </body>

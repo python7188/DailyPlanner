@@ -189,7 +189,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   const completedToday = todayTasks.filter((t) => t.is_completed).length;
 
   return (
-    <div ref={constraintsRef} className="flex flex-col lg:flex-row h-full w-full bg-gray-50 overflow-hidden min-w-[380px]">
+    <div ref={constraintsRef} className="flex-1 flex flex-col lg:flex-row h-full w-full bg-gray-50 overflow-hidden min-w-[380px]">
       {/* Chrono-Ambient Background */}
       {/* <ChronoAmbient /> */}
 
