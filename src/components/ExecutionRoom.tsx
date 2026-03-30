@@ -446,8 +446,8 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
   }, [isExamMode, tmrRunning, onDisciplinePenalty]);
 
   return (
-    <div className="flex flex-col md:flex-row w-full h-full bg-[var(--color-bg)] relative overflow-y-auto md:overflow-hidden">
-      <div className={`flex flex-col relative transition-all duration-500 overflow-hidden shrink-0 ${roomId ? 'w-full h-[55vh] md:h-full md:w-3/4' : 'w-full h-full'}`}>
+    <div className="flex flex-col md:flex-row w-full bg-[var(--color-bg)] relative">
+      <div className={`flex flex-col relative transition-all duration-500 shrink-0 ${roomId ? 'w-full md:w-3/4' : 'w-full'}`}>
 
       {/* SUCCESS TOAST OVERLAY */}
       <AnimatePresence>
@@ -456,7 +456,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="absolute top-10 left-1/2 -translate-x-1/2 z-50 bg-green-500/20 text-green-200 border border-green-500/30 px-6 py-3 rounded-full backdrop-blur-md shadow-lg font-medium text-sm flex items-center gap-2"
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-green-500/20 text-green-200 border border-green-500/30 px-6 py-3 rounded-full backdrop-blur-md shadow-lg font-medium text-sm flex items-center gap-2"
           >
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
             Session Added to Tasks
@@ -464,9 +464,12 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
         )}
       </AnimatePresence>
 
+      {/* PREMIUM TIMER CARD — Floating native mobile widget */}
+      <div className="w-full max-w-md mx-auto flex flex-col bg-[#121212] rounded-3xl shadow-2xl p-6 space-y-6 mt-2 mb-4">
+
       {/* 75% TOP: PREMIUM STOPWATCH */}
-      <div className="flex-[3] flex flex-col items-center justify-center relative p-4 sm:p-8">
-        <h1 className="text-7xl sm:text-[120px] md:text-[180px] font-light tracking-tighter tabular-nums drop-shadow-sm transition-colors duration-1000" style={{ color: isAmbient && swRunning && !showDebrief ? 'var(--color-gold)' : 'var(--color-text-primary)' }}>
+      <div className="flex flex-col items-center justify-center relative py-4">
+        <h1 className="text-6xl sm:text-8xl font-mono font-light tracking-tighter tabular-nums drop-shadow-sm transition-colors duration-1000" style={{ color: isAmbient && swRunning && !showDebrief ? 'var(--color-gold)' : 'var(--color-text-primary)' }}>
           {formatMs(swElapsed)}
         </h1>
         
@@ -496,14 +499,14 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
         </motion.div>
       </div>
 
-      {/* 25% BOTTOM: CUSTOM TIMER */}
+      {/* BOTTOM: CUSTOM TIMER */}
       {!roomId && (
         <motion.div 
-          className="flex-[1] bg-[var(--color-bg-sidebar)]/80 backdrop-blur-md border-t border-[var(--color-border)] flex flex-col items-center justify-center p-8 transition-opacity duration-1000 relative"
+          className="border-t border-white/10 flex flex-col items-center justify-center pt-6 space-y-4 transition-opacity duration-1000 relative"
           initial={false}
           animate={{ opacity: isAmbient && (swRunning || tmrRunning) && !showDebrief ? 0.2 : 1 }}
         >
-          <div className="absolute top-4 left-6 text-xs font-bold uppercase tracking-widest text-[var(--color-gold)] opacity-50">Custom Timer</div>
+          <div className="text-xs font-bold uppercase tracking-widest text-[var(--color-gold)] opacity-60 self-start">Custom Timer</div>
           
           {!tmrRunning && tmrRemainingMs === 0 && !isAlarmRinging ? (
             <>
@@ -582,6 +585,9 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
         </motion.div>
       )}
 
+      {/* Close premium card */}
+      </div>
+
       {/* =========================================
           EXECUTIVE DEBRIEF MODAL (Framer Motion) 
           ========================================= */}
@@ -618,20 +624,18 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
                 </div>
               </div>
 
-              <div className="w-full mb-8">
+              <div className="flex flex-col gap-4 mt-auto w-full">
                 <textarea 
                   value={sessionNote}
                   onChange={(e) => setSessionNote(e.target.value)}
                   placeholder="Session Notes (What did you execute?)..."
-                  className="w-full mt-6 p-4 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#CFA660] resize-none"
+                  className="w-full p-4 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#CFA660] resize-none"
                 />
-              </div>
 
-              <div className="flex flex-col gap-4 mt-auto">
                 <button
                   onClick={handleShare}
                   disabled={isSharing || isLogging}
-                  className="w-full py-4 mt-6 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold rounded-xl transition-all shadow-lg disabled:opacity-50"
+                  className="w-full py-4 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold rounded-xl transition-all shadow-lg disabled:opacity-50"
                 >
                   {isSharing ? (
                     <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />

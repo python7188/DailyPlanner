@@ -189,7 +189,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   const completedToday = todayTasks.filter((t) => t.is_completed).length;
 
   return (
-    <div className="min-h-screen flex bg-[var(--color-bg)] relative overflow-hidden min-w-[380px]">
+    <div ref={constraintsRef} className="flex flex-col h-[100dvh] bg-gray-50 overflow-hidden min-w-[380px]">
       {/* Chrono-Ambient Background */}
       {/* <ChronoAmbient /> */}
 
@@ -225,7 +225,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
       </div>
 
       {/* Main Content */}
-      <div ref={constraintsRef} className="flex-1 flex flex-col min-h-screen relative">
+      <div className="flex-1 flex flex-col overflow-hidden relative">
         <Header 
           firstName={firstName} 
           onSignOut={handleSignOut} 
@@ -239,7 +239,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
         <div className="sticky top-[60px] z-20 h-6 pointer-events-none bg-gradient-to-b from-[var(--color-bg)] to-transparent" />
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto scroll-smooth" id="main-scroll">
+        <div className="flex-1 overflow-y-auto px-4 py-6 pb-32 scroll-smooth" id="main-scroll">
           <AnimatePresence mode="wait">
             {activeView === 'goals' ? (
               <motion.div
@@ -337,8 +337,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
               whileHover={{ scale: 1.12, rotate: 90 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => setShowAddModal(true)}
-              className="absolute top-1/2 left-1/2 -ml-[28px] -mt-[28px] w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-40 touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
-              style={{ filter: 'url(#gooey)' }}
+              className="fixed bottom-[140px] right-6 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-[99999] touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
             >
               <Plus className="w-6 h-6 text-white" />
             </motion.button>
