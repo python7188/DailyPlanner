@@ -21,7 +21,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="font-sans antialiased">{children}</body>
+      {/* 1. ROOT WRAPPER: At least the height of the screen, flex col */}
+      {/* Note: I swapped min-h-screen to min-h-[100dvh] to preserve our previous mobile fix! */}
+      <body className="font-sans antialiased min-h-[100dvh] flex flex-col bg-[var(--color-bg)]">
+        
+        {/* 2. MAIN CONTENT SPRING: Eats up remaining vertical space */}
+        <main className="flex-1 flex flex-col relative">
+          {children}
+        </main>
+
+        {/* 3. GLOBAL FOOTER (If you ever add one, put it here, outside the main spring) */}
+        {/* <footer>...</footer> */}
+      </body>
     </html>
   );
 }
