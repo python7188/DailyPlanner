@@ -325,7 +325,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
 
         {/* FAB — Liquid Morphing Plus (Tasks Only) */}
         <AnimatePresence>
-          {activeView === 'tasks' && (
+          {activeView === 'tasks' && !showAddModal && (
             <motion.button
               drag
               dragConstraints={constraintsRef}
@@ -337,7 +337,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
               whileHover={{ scale: 1.12, rotate: 90 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => setShowAddModal(true)}
-              className="fixed bottom-[140px] right-6 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-[99999] touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
+              className="fixed bottom-[140px] right-4 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-[99999] touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
             >
               <Plus className="w-6 h-6 text-white" />
             </motion.button>
