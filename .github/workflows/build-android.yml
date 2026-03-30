@@ -37,12 +37,12 @@ jobs:
           # Now it is completely safe to build the static mobile app
           npm run build
 
-      # 4. Setup Java JDK 17 (Required to compile modern Android apps)
+      # 4. Setup Java JDK 21 (Required to compile modern Android apps)
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
       # 5. Initialize Android Capacitor Project
       - name: Add and Sync Android Capacitor
