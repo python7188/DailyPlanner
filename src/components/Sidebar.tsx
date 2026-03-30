@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar, Target, LayoutGrid } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { Task } from '@/lib/supabase';
+import { getLocalDateString } from '@/utils/timeParser';
 
 interface SidebarProps {
   activeView: 'tasks' | 'goals' | 'execution';
@@ -18,11 +19,10 @@ const DAYS_LABEL = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 export default function Sidebar({ activeView, onSelectView, selectedDate, onSelectDate, tasks }: SidebarProps) {
   const router = useRouter();
-  const today = new Date();
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
-  const [viewYear, setViewYear] = useState(today.getFullYear());
-
-  const todayStr = today.toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
+  const _today = new Date();
+  const [viewMonth, setViewMonth] = useState(_today.getMonth());
+  const [viewYear, setViewYear] = useState(_today.getFullYear());
 
   // Task count per date for dot indicators
   const taskCountByDate = useMemo(() => {

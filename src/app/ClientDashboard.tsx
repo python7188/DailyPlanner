@@ -21,6 +21,7 @@ import OfflineBadge from '@/components/OfflineBadge';
 import MilestoneSplash from '@/components/MilestoneSplash';
 import { Plus, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getLocalDateString } from '@/utils/timeParser';
 
 export default function ClientDashboard({ initialUserId, firstName }: { initialUserId: string; firstName: string }) {
   const router = useRouter();
@@ -73,7 +74,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   // Smart Push Notifications hook
   useNotifications(tasks);
 
-  const todayStrForInit = new Date().toISOString().split('T')[0];
+  const todayStrForInit = getLocalDateString();
   const [selectedDate, setSelectedDate] = useState<string | null>(todayStrForInit);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeView, setActiveView] = useState<'tasks' | 'goals' | 'execution'>('tasks');
@@ -192,7 +193,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
     );
   }
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
   const todayTasks = tasks.filter((t) => (t.target_date || '').split('T')[0] === todayStr);
   const pendingToday = todayTasks.filter((t) => !t.is_completed).length;
   const completedToday = todayTasks.filter((t) => t.is_completed).length;
@@ -332,21 +333,21 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
           }} 
         />
 
-        {/* FAB — Liquid Morphing Plus (Tasks Only) */}
+        {/* FAB — Draggable, desktop only (md+). Mobile uses the nav bar + button. */}
         <AnimatePresence>
           {activeView === 'tasks' && (
             <motion.button
-              drag={!isMobile}
+              drag
               dragConstraints={constraintsRef}
               dragElastic={0.1}
               dragMomentum={false}
               initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1, x: isMobile ? 0 : undefined, y: isMobile ? 0 : undefined }}
+              animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               whileHover={{ scale: 1.12, rotate: 90 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => setShowAddModal(true)}
-              className="fixed z-50 !right-6 !bottom-32 !left-auto !top-auto !m-0 md:!absolute md:!top-1/2 md:!left-1/2 md:!-ml-[28px] md:!-mt-[28px] md:!bottom-auto md:!right-auto w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center touch-none md:cursor-grab md:active:cursor-grabbing hover:brightness-110"
+              className="hidden md:flex absolute top-1/2 left-1/2 -ml-[28px] -mt-[28px] z-50 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] items-center justify-center touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
               style={{ filter: 'url(#gooey)' }}
             >
               <Plus className="w-6 h-6 text-white" />
@@ -380,7 +381,8 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
         onSelectView={setActiveView}
         selectedDate={selectedDate} 
         onSelectDate={setSelectedDate} 
-        tasks={tasks} 
+        tasks={tasks}
+        onOpenAddModal={() => setShowAddModal(true)}
       />
     </div>
   );
@@ -393,22 +395,21 @@ function MobileNav({
   selectedDate,
   onSelectDate,
   tasks,
+  onOpenAddModal,
 }: {
   activeView: 'tasks' | 'goals' | 'execution';
   onSelectView: (v: 'tasks' | 'goals' | 'execution') => void;
   selectedDate: string | null;
   onSelectDate: (d: string | null) => void;
   tasks: { target_date: string; is_completed: boolean }[];
+  onOpenAddModal: () => void;
 }) {
   const router = useRouter();
   const [showSquadMenu, setShowSquadMenu] = useState(false);
   const [joinId, setJoinId] = useState('');
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  const dates = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(Date.now() + i * 86400000);
-    return d.toISOString().split('T')[0];
-  });
+  const todayStr = getLocalDateString();
+  const dates = Array.from({ length: 7 }, (_, i) => getLocalDateString(i));
 
   const taskCountByDate: Record<string, number> = {};
   tasks.forEach((t) => {
@@ -506,16 +507,34 @@ function MobileNav({
           >
             Execute
           </button>
-          <button
-            onClick={() => setShowSquadMenu(!showSquadMenu)}
-            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all ${
-              showSquadMenu
-                ? 'bg-[var(--color-gold)] text-white shadow-[var(--shadow-gold)]'
-                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
-            }`}
-          >
-            Squad
-          </button>
+          {/* + Add Task button — sits above Squad */}
+          <div className="flex-1 flex flex-col items-center justify-center relative">
+            <AnimatePresence>
+              {activeView === 'tasks' && (
+                <motion.button
+                  key="mobile-add-btn"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  whileTap={{ scale: 0.88 }}
+                  onClick={onOpenAddModal}
+                  className="absolute -top-8 w-10 h-10 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center hover:brightness-110 transition-all z-10"
+                >
+                  <Plus className="w-5 h-5 text-white" />
+                </motion.button>
+              )}
+            </AnimatePresence>
+            <button
+              onClick={() => setShowSquadMenu(!showSquadMenu)}
+              className={`w-full flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all ${
+                showSquadMenu
+                  ? 'bg-[var(--color-gold)] text-white shadow-[var(--shadow-gold)]'
+                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
+              }`}
+            >
+              Squad
+            </button>
+          </div>
         </div>
 
         {/* Date Selector (Only visible in Tasks view and Squad Menu closed) */}

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Task } from '@/lib/supabase';
-import { extractTimeMatch, parseTaskTime } from '@/utils/timeParser';
+import { extractTimeMatch, parseTaskTime, getLocalDateString } from '@/utils/timeParser';
 
 export function useDisciplineScore(userId: string | undefined, isDemo: boolean, tasks: Task[]) {
   const [score, setScore] = useState<number>(1000);
@@ -49,7 +49,7 @@ export function useDisciplineScore(userId: string | undefined, isDemo: boolean, 
     const intervalId = setInterval(() => {
       let decayDelta = 0;
       const now = Date.now();
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       
       tasks.forEach(task => {
         if (task.is_completed) return;

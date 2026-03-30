@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { getLocalDateString } from '@/utils/timeParser';
 
 interface ConsistencyHeatmapProps {
   tasks: { target_date: string; is_completed: boolean }[];
@@ -32,7 +33,7 @@ export default function ConsistencyHeatmap({ tasks }: ConsistencyHeatmapProps) {
     for (let i = 0; i < 16 * 7 + dayOfWeek + 1; i++) {
       const d = new Date(startDate);
       d.setDate(d.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       const count = completedByDate[dateStr] || 0;
       if (count > maxCount) maxCount = count;
 
@@ -57,7 +58,7 @@ export default function ConsistencyHeatmap({ tasks }: ConsistencyHeatmapProps) {
     }
   });
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
 
   const getOpacity = (date: string): number => {
     const count = completedByDate[date] || 0;

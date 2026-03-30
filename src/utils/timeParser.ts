@@ -1,3 +1,20 @@
+/**
+ * Returns a local-timezone date string in "YYYY-MM-DD" format.
+ * @param offsetDays - number of days to offset from today (default 0 = today)
+ *
+ * WHY: `new Date().toISOString()` always returns UTC, which can be a day
+ * behind/ahead for users in UTC± timezones. This function uses local
+ * Date methods so the string always matches the user's wall-clock date.
+ */
+export const getLocalDateString = (offsetDays: number = 0): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export interface ParsedTimeMatch {
   raw: string;
   index: number;

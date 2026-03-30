@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import TaskCard from './TaskCard';
 import type { Task } from '@/lib/supabase';
+import { getLocalDateString } from '@/utils/timeParser';
 
 interface TaskListProps {
   tasks: Task[];
@@ -32,7 +33,7 @@ export default function TaskList({
   onReorder,
   onTimeboxClick,
 }: TaskListProps) {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
   const [showCompleted, setShowCompleted] = useState(true);
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -101,7 +102,7 @@ export default function TaskList({
 
   const getDateHeading = (dateStr: string) => {
     if (dateStr === todayStr) return 'Today';
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    const tomorrow = getLocalDateString(1);
     if (dateStr === tomorrow) return 'Tomorrow';
     return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
       weekday: 'short', month: 'short', day: 'numeric',

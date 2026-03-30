@@ -9,7 +9,7 @@ import {
   AlertTriangle, FileText
 } from 'lucide-react';
 import type { Task } from '@/lib/supabase';
-import { getHighlightSegments } from '@/utils/timeParser';
+import { getHighlightSegments, getLocalDateString } from '@/utils/timeParser';
 
 interface TaskCardProps {
   task: Task;
@@ -158,7 +158,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
   }, [mouseX, mouseY, glareOpacity]);
 
   /* ── Check if overdue ── */
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
   const isOverdue = !task.is_completed && (task.target_date || '').split('T')[0] < todayStr;
 
   useEffect(() => {

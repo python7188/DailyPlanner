@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CalendarDays, Sparkles } from 'lucide-react';
+import { getLocalDateString } from '@/utils/timeParser';
 
 
 
@@ -14,7 +15,7 @@ interface AddTaskModalProps {
 }
 
 export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: AddTaskModalProps) {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(selectedDate || todayStr);
   const [startTime, setStartTime] = useState('');
