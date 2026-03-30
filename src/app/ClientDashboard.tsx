@@ -189,7 +189,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   const completedToday = todayTasks.filter((t) => t.is_completed).length;
 
   return (
-    <div ref={constraintsRef} className="flex-1 flex flex-col lg:flex-row w-full bg-gray-50 overflow-hidden min-h-0 min-w-[380px]">
+    <div ref={constraintsRef} className="fixed inset-0 flex flex-col lg:flex-row bg-gray-50 overflow-hidden min-w-[380px] z-0">
       {/* Chrono-Ambient Background */}
       {/* <ChronoAmbient /> */}
 
@@ -214,7 +214,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
       </AnimatePresence>
 
       {/* Sidebar — hidden on mobile */}
-      <div className="hidden lg:flex h-full min-h-0">
+      <div className="hidden lg:flex h-full shrink-0">
         <Sidebar 
           activeView={activeView}
           onSelectView={setActiveView}
@@ -225,7 +225,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden min-h-0 relative">
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         <Header 
           firstName={firstName} 
           onSignOut={handleSignOut} 
