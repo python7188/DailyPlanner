@@ -18,6 +18,15 @@ function LoginContent() {
   }, [errorMsg]);
 
   useEffect(() => {
+    // Ghost user: if already logged in via localStorage, skip to dashboard
+    try {
+      const ghost = localStorage.getItem('midnight_user');
+      if (ghost && JSON.parse(ghost).id === 'ghost-001') {
+        router.push('/');
+        return;
+      }
+    } catch {}
+
     // If the user happens to land on /login but is already authenticated, send them to the dashboard
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {

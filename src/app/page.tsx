@@ -17,6 +17,20 @@ function DashboardBouncer() {
   useEffect(() => {
     if (isDemo) return;
 
+    // ── Ghost Account Detection ──
+    try {
+      const ghost = localStorage.getItem('midnight_user');
+      if (ghost) {
+        const parsed = JSON.parse(ghost);
+        if (parsed.id === 'ghost-001') {
+          setUserId('ghost-001');
+          setFirstName(parsed.name || 'Sowmya');
+          setLoading(false);
+          return;
+        }
+      }
+    } catch {}
+
     const checkUser = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (user && !error) {

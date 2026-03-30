@@ -39,14 +39,20 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
       }
     };
 
-    if (initialUserId && initialUserId !== 'demo') {
+    if (initialUserId && initialUserId !== 'demo' && initialUserId !== 'ghost-001') {
       checkStreak(initialUserId);
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id);
-      if (!session?.user && !isDemo) {
-         router.push('/login');
+      if (session?.user) {
+        setUserId(session.user.id);
+      } else if (!isDemo) {
+        // Don't redirect ghost user on Supabase auth state changes
+        try {
+          const ghost = localStorage.getItem('midnight_user');
+          if (ghost && JSON.parse(ghost).id === 'ghost-001') return;
+        } catch {}
+        router.push('/login');
       }
     });
 
@@ -138,6 +144,19 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   }, [haptic]);
 
   const handleSignOut = async () => {
+    // Clear ghost user data if applicable
+    try {
+      const ghost = localStorage.getItem('midnight_user');
+      if (ghost && JSON.parse(ghost).id === 'ghost-001') {
+        localStorage.removeItem('midnight_user');
+        localStorage.removeItem('midnight_ghost_tasks');
+        localStorage.removeItem('midnight_ghost_goals');
+        localStorage.removeItem('midnight_ghost_subtasks');
+        setUserId(undefined);
+        router.push('/login');
+        return;
+      }
+    } catch {}
     await supabase.auth.signOut();
     setIsDemo(false);
     setUserId(undefined);

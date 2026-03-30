@@ -32,14 +32,29 @@ const DEMO_SUBTASKS: SubTask[] = [
   { id: 's3', goal_id: 'g1', title: 'Hit 75kg milestone', achieved_value: 9, is_completed: false, created_at: new Date().toISOString() },
 ];
 
+// ============ GHOST USER CONSTANTS ============
+const GHOST_USER_ID = 'ghost-001';
+const GHOST_TASKS_KEY = 'midnight_ghost_tasks';
+const GHOST_GOALS_KEY = 'midnight_ghost_goals';
+const GHOST_SUBTASKS_KEY = 'midnight_ghost_subtasks';
+
 // ============ useTasks HOOK ============
 export function useTasks(userId: string | undefined, isDemo: boolean) {
+  const isGhost = userId === GHOST_USER_ID;
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isDemo) {
       setTasks(DEMO_TASKS);
+      setIsLoading(false);
+      return;
+    }
+    if (isGhost) {
+      try {
+        const stored = localStorage.getItem(GHOST_TASKS_KEY);
+        setTasks(stored ? JSON.parse(stored) : []);
+      } catch { setTasks([]); }
       setIsLoading(false);
       return;
     }
@@ -58,7 +73,14 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
     };
 
     fetchTasks();
-  }, [userId, isDemo]);
+  }, [userId, isDemo, isGhost]);
+
+  // ── Ghost auto-sync: persist tasks to localStorage on every change ──
+  useEffect(() => {
+    if (isGhost && !isLoading) {
+      localStorage.setItem(GHOST_TASKS_KEY, JSON.stringify(tasks));
+    }
+  }, [tasks, isGhost, isLoading]);
 
   const addTask = useCallback(
     async (title: string, targetDate: string, timeTargetMinutes?: number) => {
@@ -81,25 +103,43 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         order_index: tasks.length,
       };
 
-      // Optimistic update
+      // Optimistic update — show the task immediately
       setTasks((prev) => [newTask, ...prev]);
 
-      if (!isDemo && userId) {
-        const { error } = await supabase.from('tasks').insert({
+      if (!isDemo && !isGhost && userId) {
+        // Build payload with only essential columns first.
+        // If order_index / time_target_minutes columns don't exist in your DB,
+        // the insert will fail and the task will be rolled back.
+        // Run the SQL migration in fix-tasks-schema.sql to add missing columns.
+        const payload: Record<string, unknown> = {
           id: newTask.id,
           user_id: userId,
           title,
           is_completed: false,
           target_date: targetDate,
-          time_target_minutes: timeTargetMinutes || null,
-        });
+        };
+        if (timeTargetMinutes) {
+          payload.time_target_minutes = timeTargetMinutes;
+        }
+
+        const { error } = await supabase.from('tasks').insert(payload);
         if (error) {
-          console.error(error);
+          // Log the FULL error so schema mismatches are visible in DevTools
+          console.error(
+            '[useTasks] INSERT FAILED — task rolled back.\n',
+            'Error code:', error.code, '\n',
+            'Error message:', error.message, '\n',
+            'Details:', error.details, '\n',
+            'Hint:', error.hint, '\n',
+            'Payload sent:', JSON.stringify(payload, null, 2)
+          );
+          // Roll back the optimistic update
           setTasks((prev) => prev.filter((t) => t.id !== newTask.id));
         }
       }
     },
-    [userId, isDemo]
+    // FIX: Added `tasks` to the dependency array — was missing, causing stale closures
+    [userId, isDemo, tasks]
   );
 
   const toggleTask = useCallback(
@@ -110,7 +150,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         )
       );
 
-      if (!isDemo) {
+      if (!isDemo && !isGhost) {
         const task = tasks.find((t) => t.id === id);
         if (task) {
           await supabase
@@ -127,7 +167,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
     async (id: string) => {
       setTasks((prev) => prev.filter((t) => t.id !== id));
 
-      if (!isDemo) {
+      if (!isDemo && !isGhost) {
         await supabase.from('tasks').delete().eq('id', id);
       }
     },
@@ -140,7 +180,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         prev.map((t) => (t.id === id ? { ...t, title: newTitle } : t))
       );
 
-      if (!isDemo) {
+      if (!isDemo && !isGhost) {
         await supabase.from('tasks').update({ title: newTitle }).eq('id', id);
       }
     },
@@ -167,7 +207,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
       return newTasks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
     });
 
-    if (!isDemo) {
+    if (!isDemo && !isGhost) {
       // 2. Background DB sync
       const updates = reorderedList.map((t) => ({
         id: t.id,
@@ -189,6 +229,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
 
 // ============ useGoals HOOK ============
 export function useGoals(userId: string | undefined, isDemo: boolean) {
+  const isGhost = userId === GHOST_USER_ID;
   const [goals, setGoals] = useState<Goal[]>([]);
   const [subTasks, setSubTasks] = useState<SubTask[]>([]);
 
@@ -196,6 +237,15 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
     if (isDemo) {
       setGoals(DEMO_GOALS);
       setSubTasks(DEMO_SUBTASKS);
+      return;
+    }
+    if (isGhost) {
+      try {
+        const storedGoals = localStorage.getItem(GHOST_GOALS_KEY);
+        setGoals(storedGoals ? JSON.parse(storedGoals) : []);
+        const storedSubs = localStorage.getItem(GHOST_SUBTASKS_KEY);
+        setSubTasks(storedSubs ? JSON.parse(storedSubs) : []);
+      } catch { setGoals([]); setSubTasks([]); }
       return;
     }
     if (!userId) return;
@@ -220,7 +270,20 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
     };
 
     fetchGoals();
-  }, [userId, isDemo]);
+  }, [userId, isDemo, isGhost]);
+
+  // ── Ghost auto-sync: persist goals & subtasks to localStorage ──
+  useEffect(() => {
+    if (isGhost) {
+      localStorage.setItem(GHOST_GOALS_KEY, JSON.stringify(goals));
+    }
+  }, [goals, isGhost]);
+
+  useEffect(() => {
+    if (isGhost) {
+      localStorage.setItem(GHOST_SUBTASKS_KEY, JSON.stringify(subTasks));
+    }
+  }, [subTasks, isGhost]);
 
   const addGoal = useCallback(
     async (title: string, startValue: number, targetValue: number) => {
@@ -245,7 +308,7 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
 
       setGoals((prev) => [...prev, newGoal]);
 
-      if (!isDemo && userId) {
+      if (!isDemo && !isGhost && userId) {
         await supabase.from('goals').insert({
           id: newGoal.id,
           user_id: userId,
@@ -253,6 +316,7 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
           start_value: startValue,
           target_value: targetValue,
           current_value: startValue,
+          order_index: goals.length,
         });
       }
     },
@@ -265,7 +329,7 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
         prev.map((g) => (g.id === id ? { ...g, current_value: currentValue } : g))
       );
 
-      if (!isDemo) {
+      if (!isDemo && !isGhost) {
         await supabase.from('goals').update({ current_value: currentValue }).eq('id', id);
       }
     },
@@ -275,7 +339,7 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
   const deleteGoal = useCallback(
     async (id: string) => {
       setGoals((prev) => prev.filter((g) => g.id !== id));
-      if (!isDemo) {
+      if (!isDemo && !isGhost) {
         await supabase.from('goals').delete().eq('id', id);
       }
     },
@@ -302,13 +366,14 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
       };
       setSubTasks((prev) => [...prev, newSub]);
 
-      if (!isDemo) {
+      if (!isDemo && !isGhost) {
         await supabase.from('sub_tasks').insert({
           id: newSub.id,
           goal_id: goalId,
           title,
           achieved_value: achievedValue,
-          is_completed: false
+          is_completed: false,
+          order_index: subTasks.filter(s => s.goal_id === goalId).length,
         });
       }
     },
@@ -321,7 +386,7 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
         prev.map((st) => (st.id === id ? { ...st, is_completed: !st.is_completed } : st))
       );
 
-      if (!isDemo) {
+      if (!isDemo && !isGhost) {
         const target = subTasks.find(s => s.id === id);
         if (target) {
           await supabase.from('sub_tasks').update({ is_completed: !target.is_completed }).eq('id', id);
@@ -334,7 +399,7 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
   const deleteSubTask = useCallback(
     async (id: string) => {
       setSubTasks((prev) => prev.filter((s) => s.id !== id));
-      if (!isDemo) {
+      if (!isDemo && !isGhost) {
         await supabase.from('sub_tasks').delete().eq('id', id);
       }
     },

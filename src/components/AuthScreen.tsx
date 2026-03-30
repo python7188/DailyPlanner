@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 interface AuthScreenProps {
   onDemoLogin: () => void;
@@ -15,11 +16,20 @@ export default function AuthScreen({ onDemoLogin }: AuthScreenProps) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // ── Ghost Account Intercept ──
+    if (email.trim().toLowerCase() === 'sowmya@gmail.com' && password === 'sowmya') {
+      const mockUser = { id: 'ghost-001', name: 'Sowmya', email: 'sowmya@gmail.com' };
+      localStorage.setItem('midnight_user', JSON.stringify(mockUser));
+      router.push('/');
+      return;
+    }
 
     const { error: authError } = isLogin
       ? await supabase.auth.signInWithPassword({ email, password })
