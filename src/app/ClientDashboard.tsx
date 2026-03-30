@@ -337,7 +337,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
               whileHover={{ scale: 1.12, rotate: 90 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => setShowAddModal(true)}
-              className="absolute bottom-[130px] lg:bottom-8 right-6 lg:right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-40 touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
+              className="absolute top-1/2 left-1/2 -ml-[28px] -mt-[28px] w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-40 touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
               style={{ filter: 'url(#gooey)' }}
             >
               <Plus className="w-6 h-6 text-white" />
