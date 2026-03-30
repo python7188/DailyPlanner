@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, useMotionValue, useTransform, useSpring, Reorder } from 'framer-motion';
 import {
-  Check, Trash2,
+  Check, Trash2, Clock,
   Dumbbell, BookOpen, Briefcase, Palette,
   Music, FlaskConical, Languages, CalendarDays,
   AlertTriangle, FileText
@@ -76,6 +76,37 @@ function playDeleteSound() {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
     osc.stop(ctx.currentTime + 0.15);
   } catch { /* silent */ }
+}
+
+/* ── Time Math & Formatting ───────────────────────────── */
+export function formatAMPM(timeStr?: string) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  if (!h || !m) return timeStr;
+  const hour = parseInt(h, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${m}${ampm}`;
+}
+
+export function calculateDuration(start: string, end: string) {
+  const [sH, sM] = start.split(':').map(Number);
+  const [eH, eM] = end.split(':').map(Number);
+  
+  let startTotal = sH * 60 + sM;
+  let endTotal = eH * 60 + eM;
+  
+  if (endTotal < startTotal) {
+    endTotal += 1440; // Add 24 hours in minutes
+  }
+  
+  const diff = endTotal - startTotal;
+  const hours = Math.floor(diff / 60);
+  const minutes = diff % 60;
+  
+  if (hours === 0) return `${minutes}m`;
+  if (minutes === 0) return `${hours}h`;
+  return `${hours}h ${minutes}m`;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -276,21 +307,53 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
         ) : (
           /* Animated Strike-Through wrapper */
           <div className="relative inline-block">
-            <p className={`text-base font-medium leading-snug transition-colors duration-300 ${
+            <p className={`text-base font-medium leading-snug transition-colors duration-300 flex items-center flex-wrap ${
               task.is_completed
                 ? 'text-[var(--color-text-ghost)]'
                 : isOverdue
                 ? 'text-red-400 kinetic-overdue'
                 : 'text-[var(--color-text-primary)]'
             }`}>
-              {highlighted.map((seg, j) =>
-                !seg.isTime ? (
-                  <span key={j}>{seg.text}</span>
-                ) : (
-                  <span key={j} className="gold-pill font-bold px-1.5 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] mx-1 text-sm shadow-[0_0_10px_rgba(212,161,39,0.2)]">
-                    {seg.text}
+              <span className="mr-1">
+                {highlighted.map((seg, j) =>
+                  !seg.isTime ? (
+                    <span key={j}>{seg.text}</span>
+                  ) : (
+                    <span key={j} className="gold-pill font-bold px-1.5 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] mx-1 text-sm shadow-[0_0_10px_rgba(212,161,39,0.2)]">
+                      {seg.text}
+                    </span>
+                  )
+                )}
+              </span>
+
+              {/* ── Time Block Bracket UI ── */}
+              {(task.start_time || task.end_time) && (
+                <span className="inline-flex items-center">
+                  <span className="text-gray-600 dark:text-gray-400 text-sm">
+                    [
+                    {task.start_time && (
+                      <span className="px-1.5 py-0.5 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded text-xs font-semibold mx-1">
+                        {formatAMPM(task.start_time)}
+                      </span>
+                    )}
+                    {task.start_time && task.end_time && (
+                      <span>-</span>
+                    )}
+                    {task.end_time && (
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300 mx-1">
+                        {formatAMPM(task.end_time)}
+                      </span>
+                    )}
+                    ]
                   </span>
-                )
+
+                  {/* ── Duration Badge ── */}
+                  {task.start_time && task.end_time && (
+                    <span className="ml-2 px-1.5 py-0.5 bg-[#eaddbe]/30 text-[#8b6f3b] text-[10px] font-bold rounded shadow-sm border border-[#eaddbe]/50">
+                      {calculateDuration(task.start_time, task.end_time)}
+                    </span>
+                  )}
+                </span>
               )}
             </p>
             {/* The animated Slash/Line */}

@@ -18,7 +18,13 @@ ALTER TABLE public.tasks
 ALTER TABLE public.tasks
   ADD COLUMN IF NOT EXISTS order_index INT DEFAULT 0;
 
--- 4. Drop the legacy `priority` column (no longer used in the app)
+-- 4. Add time-blocking fields (start_time, end_time, is_daily)
+ALTER TABLE public.tasks
+  ADD COLUMN IF NOT EXISTS start_time TIME,
+  ADD COLUMN IF NOT EXISTS end_time TIME,
+  ADD COLUMN IF NOT EXISTS is_daily BOOLEAN DEFAULT FALSE;
+
+-- 5. Drop the legacy `priority` column (no longer used in the app)
 --    If you want to keep it, comment out this line.
 ALTER TABLE public.tasks
   DROP COLUMN IF EXISTS priority;

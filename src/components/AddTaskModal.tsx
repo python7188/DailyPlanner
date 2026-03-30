@@ -164,12 +164,14 @@ export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: A
                   <button
                     type="button"
                     onClick={() => setIsDaily(!isDaily)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      isDaily ? 'bg-[#eaddbe]' : 'bg-[var(--color-border)]'
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-300 ease-in-out focus:outline-none ${
+                      isDaily 
+                        ? 'bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]' 
+                        : 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.6)]'
                     }`}
                   >
                     <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-300 ease-in-out ${
                         isDaily ? 'translate-x-5' : 'translate-x-0'
                       }`}
                     />
