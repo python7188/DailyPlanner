@@ -120,7 +120,7 @@ export default function TaskList({
     : null;
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
 
       {/* ── Section Header ── */}
       <motion.div
@@ -407,8 +407,6 @@ export default function TaskList({
           </AnimatePresence>
         </div>
       )}
-
-
     </div>
   );
 }
