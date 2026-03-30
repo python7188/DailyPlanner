@@ -338,31 +338,6 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                 )}
               </span>
 
-              {/* ── Time Block Bracket UI ── */}
-              {(task.start_time || task.end_time) && (
-                <span className="ml-2 flex items-center space-x-1">
-                  <span className="text-black text-xl font-light leading-none translate-y-[-1px]">[</span>
-                  {task.start_time && (
-                    <span className="px-2 py-1 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded-md text-sm font-semibold">
-                      {formatAMPM(task.start_time)}
-                    </span>
-                  )}
-                  {task.start_time && task.end_time && (
-                    <span className="text-gray-500 font-medium">-</span>
-                  )}
-                  {task.end_time && (
-                    <span className="px-2 py-1 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded-md text-sm font-semibold">
-                      {formatAMPM(task.end_time)}
-                    </span>
-                  )}
-                  <span className="text-black text-xl font-light leading-none translate-y-[-1px]">]</span>
-                  {task.start_time && task.end_time && (
-                    <span className="ml-2 px-2 py-1 bg-[#eaddbe]/30 text-[#8b6f3b] text-sm font-bold rounded-md">
-                      {calculateDuration(task.start_time, task.end_time)}
-                    </span>
-                  )}
-                </span>
-              )}
             </p>
             {/* The animated Slash/Line */}
             {task.is_completed && (
@@ -400,6 +375,32 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
         >
           {task.time_target_minutes}m
         </button>
+      )}
+
+      {/* ── Scheduled Timestamps (Right Side) ── */}
+      {(task.start_time || task.end_time) && (
+        <div className="flex-shrink-0 flex items-center gap-[1px] sm:gap-1.5 opacity-90 transition-opacity hover:opacity-100">
+          <span className="text-black/40 text-lg sm:text-xl font-light leading-none translate-y-[-1px]">[</span>
+          {task.start_time && (
+            <span className="px-1.5 py-0.5 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded text-[9px] sm:text-xs font-bold tracking-tight whitespace-nowrap">
+              {formatAMPM(task.start_time)}
+            </span>
+          )}
+          {task.start_time && task.end_time && (
+            <span className="text-[#EADDBE] font-medium scale-75">-</span>
+          )}
+          {task.end_time && (
+            <span className="px-1.5 py-0.5 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded text-[9px] sm:text-xs font-bold tracking-tight whitespace-nowrap">
+              {formatAMPM(task.end_time)}
+            </span>
+          )}
+          <span className="text-black/40 text-lg sm:text-xl font-light leading-none translate-y-[-1px]">]</span>
+          {task.start_time && task.end_time && (
+            <span className="ml-1 px-1.5 py-0.5 bg-[#eaddbe]/30 text-[#8b6f3b] text-[9px] sm:text-xs font-bold rounded whitespace-nowrap shadow-sm">
+              {calculateDuration(task.start_time, task.end_time)}
+            </span>
+          )}
+        </div>
       )}
 
       {/* ── Date pill ── */}

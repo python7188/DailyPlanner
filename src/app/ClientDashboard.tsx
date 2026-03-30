@@ -322,24 +322,24 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
           }} 
         />
 
-        {/* FAB — Liquid Morphing Plus (Tasks Only) */}
-        <AnimatePresence>
-          {activeView === 'tasks' && !showAddModal && (
-            <motion.button
-              drag
-              dragMomentum={false}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              whileHover={{ scale: 1.12, rotate: 90 }}
-              whileTap={{ scale: 0.92 }}
-              onClick={() => setShowAddModal(true)}
-              className="fixed bottom-[140px] right-4 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-[99999] touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
-            >
-              <Plus className="w-6 h-6 text-white" />
-            </motion.button>
-          )}
-        </AnimatePresence>
+        {/* FAB — Liquid Morphing Plus (Kept mounted to preserve drag state) */}
+        <motion.button
+          drag
+          dragMomentum={false}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ 
+            scale: (activeView === 'tasks' && !showAddModal) ? 1 : 0, 
+            opacity: (activeView === 'tasks' && !showAddModal) ? 1 : 0 
+          }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          whileHover={{ scale: 1.12, rotate: 90 }}
+          whileTap={{ scale: 0.92 }}
+          onClick={() => setShowAddModal(true)}
+          style={{ pointerEvents: (activeView === 'tasks' && !showAddModal) ? 'auto' : 'none' }}
+          className="fixed bottom-[140px] right-4 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-[99999] touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
+        >
+          <Plus className="w-6 h-6 text-white" />
+        </motion.button>
 
         {/* SVG Gooey Filter */}
         <svg className="fixed" width="0" height="0" aria-hidden="true">
