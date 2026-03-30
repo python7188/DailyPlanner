@@ -46,7 +46,7 @@ function DashboardBouncer() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)]">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-[var(--color-bg)]">
         <div className="w-8 h-8 border-2 border-[var(--color-gold)] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -54,7 +54,7 @@ function DashboardBouncer() {
 
   if (!userId && !isDemo) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden font-sans">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-white relative overflow-hidden font-sans">
         <div className="relative z-10 w-full max-w-sm mx-4 bg-white/70 backdrop-blur-3xl rounded-3xl border border-white/80 shadow-2xl shadow-black/5 p-10 text-center">
           <svg width="48" height="48" viewBox="0 0 52 52" fill="none" className="mx-auto mb-6">
             <defs>
@@ -90,7 +90,7 @@ function DashboardBouncer() {
 export default function Dashboard() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)]">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-[var(--color-bg)]">
         <div className="w-8 h-8 border-2 border-[var(--color-gold)] border-t-transparent rounded-full animate-spin" />
       </div>
     }>

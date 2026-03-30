@@ -407,6 +407,9 @@ export default function TaskList({
           </AnimatePresence>
         </div>
       )}
+
+      {/* THE FIX: Invisible Ghost Spacer to perfectly clear the navigation menu */}
+      <div className="h-32 sm:h-40 w-full flex-shrink-0" aria-hidden="true" />
     </div>
   );
 }

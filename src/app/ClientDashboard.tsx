@@ -174,7 +174,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   // Loading
   if (tasksLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)]">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-[var(--color-bg)]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-2 border-[var(--color-gold)] border-t-transparent rounded-full animate-spin" />
           <span className="text-xs text-[var(--color-text-ghost)] uppercase tracking-widest">Loading tasks...</span>
@@ -300,6 +300,9 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* THE FIX: Invisible Ghost Spacer to perfectly clear the bottom navigation menu / blur mask safely on WebKit/iOS */}
+          <div className="h-32 sm:h-40 w-full flex-shrink-0" aria-hidden="true" />
         </div>
 
         {/* Progressive Blur Bottom Mask */}

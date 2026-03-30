@@ -29,7 +29,7 @@ export async function GET(request: Request) {
       <head>
         <meta http-equiv="refresh" content="0; url=${targetUrl}">
       </head>
-      <body style="background: #000; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh;">
+      <body style="background: #000; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100dvh;">
         <p>Authenticating... Please wait.</p>
         <script>window.location.href = "${targetUrl}";</script>
       </body>
