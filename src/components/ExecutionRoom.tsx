@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Share2 } from 'lucide-react';
 import { toPng } from 'html-to-image';
@@ -278,6 +279,8 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
   // Exam Simulator Hardcore Mode State
   const [isExamMode, setIsExamMode] = useState(false);
   const [examPenaltyAlert, setExamPenaltyAlert] = useState(false);
+  const [showExamSetup, setShowExamSetup] = useState(false);
+  const [examMinsInput, setExamMinsInput] = useState('60');
 
   // Load Ghost State for Timer
   useEffect(() => {
@@ -400,17 +403,21 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
   };
 
   const promptExam = () => {
-    const minsStr = window.prompt("Enter Exam Duration (minutes)\\n\\nWARNING: The dashboard will vanish. If you leave the tab you will instantly lose 25 Discipline Points!");
-    if (minsStr) {
-      const mins = parseFloat(minsStr);
-      if (!isNaN(mins) && mins > 0) {
-        setIsExamMode(true);
-        const ms = Math.floor(mins * 60 * 1000);
-        setTmrTotalMs(ms);
-        setTmrRemainingMs(ms);
-        setTmrRunning(true);
-        broadcastState(true, formatMs(ms), 'timer', Date.now(), ms);
-      }
+    setExamMinsInput('60');
+    setShowExamSetup(true);
+  };
+
+  const startExamFromSetup = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const mins = parseFloat(examMinsInput);
+    if (!isNaN(mins) && mins > 0) {
+      setIsExamMode(true);
+      setShowExamSetup(false);
+      const ms = Math.floor(mins * 60 * 1000);
+      setTmrTotalMs(ms);
+      setTmrRemainingMs(ms);
+      setTmrRunning(true);
+      broadcastState(true, formatMs(ms), 'timer', Date.now(), ms);
     }
   };
 
@@ -522,13 +529,19 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
               </div>
               
               {!tmrRunning && tmrRemainingMs === 0 && (
-                <button 
-                  onClick={promptExam}
-                  className="absolute bottom-4 uppercase tracking-widest text-[9px] font-bold text-red-500 hover:text-red-400 transition-colors"
-                  title="Strips away the OS. Forces completely distraction focus. Penalizes on-blur."
-                >
-                  Initiate Exam Protocol
-                </button>
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-max">
+                  <button 
+                    onClick={promptExam}
+                    className="px-6 py-2 border border-red-500/30 hover:border-red-500/80 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs rounded-lg shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_25px_rgba(239,68,68,0.4)] transition-all flex items-center justify-center gap-3"
+                    title="Strips away the OS. Forces completely distraction focus. Penalizes on-blur."
+                  >
+                    <div className="relative flex items-center justify-center">
+                      <span className="w-2 h-2 rounded-full bg-red-500 absolute animate-ping"></span>
+                      <span className="w-2 h-2 rounded-full bg-red-500 relative"></span>
+                    </div>
+                    Initiate Exam Protocol
+                  </button>
+                </div>
               )}
             </>
           ) : (
@@ -674,61 +687,102 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, onD
       )}
 
       {/* =========================================
-          EXAM SIMULATOR PANOPTICON OVERLAY
+          EXAM SIMULATOR PANOPTICON OVERLAY & SETUP
           ========================================= */}
-      <AnimatePresence>
-        {isExamMode && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4 sm:p-8 overflow-hidden"
-          >
-            {/* The Smoked Glass Timer Box */}
-            <h2 className="text-[var(--color-gold)]/50 tracking-[0.5em] text-sm font-bold uppercase mb-8 sm:mb-12">Exam Protocol Active</h2>
-            
-            <div className="relative p-8 sm:p-24 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] sm:rounded-[3rem] shadow-[0_0_100px_rgba(255,215,0,0.05)] text-center w-full max-w-4xl flex flex-col items-center justify-center overflow-hidden">
-              <h1 className="text-7xl sm:text-[140px] md:text-[200px] lg:text-[280px] leading-none font-light tracking-tighter tabular-nums drop-shadow-2xl text-white">
-                {isAlarmRinging ? "00:00" : formatMs(tmrRemainingMs)}
-              </h1>
-              
-              <div className="mt-12 sm:mt-16 flex gap-4 sm:gap-8">
-                {isAlarmRinging ? (
-                  <button onClick={stopAlarm} className="text-lg sm:text-xl font-bold px-8 py-4 sm:px-12 sm:py-6 rounded-full bg-red-600 text-white animate-pulse">Silence Alarm</button>
-                ) : (
-                  <button 
-                  onClick={() => {
-                    if (window.confirm("Abort Exam Mode? You will lose all current progress.")) {
-                      setIsExamMode(false);
-                      resetTimer();
-                    }
-                  }} 
-                  className="px-6 py-3 border border-white/20 rounded-full text-white/30 hover:text-red-400 hover:border-red-500/50 transition-colors uppercase tracking-widest text-[10px] sm:text-xs font-bold"
-                >
-                  Surrender / Abort
-                </button>
-                )}
-              </div>
-            </div>
-
-            {/* Red Penalty Warning Modal */}
-            <AnimatePresence>
-              {examPenaltyAlert && (
+      {typeof document !== 'undefined' && createPortal(
+        <>
+          {/* Custom Setup Modal */}
+          <AnimatePresence>
+            {showExamSetup && (
+              <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+              >
                 <motion.div 
-                  initial={{ opacity: 0, scale: 0.9, y: 50 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 50 }}
-                  className="absolute bottom-8 sm:bottom-12 mx-4 bg-[#1a0505] border border-red-500/50 p-6 sm:p-8 rounded-[2rem] shadow-[0_0_100px_rgba(239,68,68,0.3)] flex flex-col items-center"
+                  initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-[#121212] border border-red-500/30 p-8 rounded-3xl shadow-[0_0_50px_rgba(239,68,68,0.2)] max-w-md w-full text-center"
                 >
-                  <span className="text-red-400 font-bold text-center text-3xl sm:text-4xl uppercase tracking-tighter mb-4">Focus Lost</span>
-                  <span className="text-red-200/80 text-center text-sm sm:text-lg mb-6 max-w-sm">A massive discipline penalty <span className="text-red-400 font-bold">(-25 pts)</span> has been logged to your score. Do not navigate away from the exam constraints.</span>
-                  <button onClick={() => setExamPenaltyAlert(false)} className="w-full px-8 py-4 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-full font-bold text-red-400 uppercase tracking-widest text-xs transition-colors">Understood</button>
+                  <h2 className="text-red-500 font-bold uppercase tracking-widest text-lg mb-4">Exam Protocol Setup</h2>
+                  <p className="text-white/70 text-sm mb-8 leading-relaxed">
+                    WARNING: The dashboard will vanish. If you leave the tab you will instantly lose <span className="text-red-400 font-bold">25 Discipline Points!</span><br/> Completely distraction-free.
+                  </p>
+                  <form onSubmit={startExamFromSetup} className="flex flex-col gap-6">
+                    <div className="flex flex-col items-center gap-2">
+                      <label className="text-xs font-bold text-[var(--color-gold)] uppercase tracking-widest">Duration (Minutes)</label>
+                      <input 
+                        type="number"
+                        value={examMinsInput}
+                        onChange={(e) => setExamMinsInput(e.target.value)}
+                        className="w-32 bg-transparent border-b-2 border-white/20 focus:border-red-500 text-center text-4xl font-light text-white px-2 py-2 outline-none transition-colors"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex gap-4 mt-4">
+                      <button type="button" onClick={() => setShowExamSetup(false)} className="flex-1 py-3 text-sm font-bold text-white/50 hover:text-white transition-colors">CANCEL</button>
+                      <button type="submit" className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all">START EXAM</button>
+                    </div>
+                  </form>
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {isExamMode && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[99999] bg-black flex flex-col items-center justify-center p-4 sm:p-8 overflow-hidden"
+              >
+                {/* The Smoked Glass Timer Box */}
+                <h2 className="text-[var(--color-gold)]/50 tracking-[0.5em] text-sm font-bold uppercase mb-8 sm:mb-12">Exam Protocol Active</h2>
+                
+                <div className="relative p-8 sm:p-24 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] sm:rounded-[3rem] shadow-[0_0_100px_rgba(255,215,0,0.05)] text-center w-full max-w-4xl flex flex-col items-center justify-center overflow-hidden">
+                  <h1 className="text-7xl sm:text-[140px] md:text-[200px] lg:text-[280px] leading-none font-light tracking-tighter tabular-nums drop-shadow-2xl text-white">
+                    {isAlarmRinging ? "00:00" : formatMs(tmrRemainingMs)}
+                  </h1>
+                  
+                  <div className="mt-12 sm:mt-16 flex gap-4 sm:gap-8">
+                    {isAlarmRinging ? (
+                      <button onClick={stopAlarm} className="text-lg sm:text-xl font-bold px-8 py-4 sm:px-12 sm:py-6 rounded-full bg-red-600 text-white animate-pulse">Silence Alarm</button>
+                    ) : (
+                      <button 
+                      onClick={() => {
+                        if (window.confirm("Abort Exam Mode? You will lose all current progress.")) {
+                          setIsExamMode(false);
+                          resetTimer();
+                        }
+                      }} 
+                      className="px-6 py-3 border border-white/20 rounded-full text-white/30 hover:text-red-400 hover:border-red-500/50 transition-colors uppercase tracking-widest text-[10px] sm:text-xs font-bold"
+                    >
+                      Surrender / Abort
+                    </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Red Penalty Warning Modal */}
+                <AnimatePresence>
+                  {examPenaltyAlert && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9, y: 50 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: 50 }}
+                      className="absolute bottom-8 sm:bottom-12 mx-4 bg-[#1a0505] border border-red-500/50 p-6 sm:p-8 rounded-[2rem] shadow-[0_0_100px_rgba(239,68,68,0.3)] flex flex-col items-center"
+                    >
+                      <span className="text-red-400 font-bold text-center text-3xl sm:text-4xl uppercase tracking-tighter mb-4">Focus Lost</span>
+                      <span className="text-red-200/80 text-center text-sm sm:text-lg mb-6 max-w-sm">A massive discipline penalty <span className="text-red-400 font-bold">(-25 pts)</span> has been logged to your score. Do not navigate away from the exam constraints.</span>
+                      <button onClick={() => setExamPenaltyAlert(false)} className="w-full px-8 py-4 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-full font-bold text-red-400 uppercase tracking-widest text-xs transition-colors">Understood</button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>,
+        document.body
+      )}
     </div>
   );
 }

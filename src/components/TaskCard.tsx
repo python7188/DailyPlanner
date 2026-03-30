@@ -115,7 +115,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
 
   /* ── Check if overdue ── */
   const todayStr = new Date().toISOString().split('T')[0];
-  const isOverdue = !task.is_completed && task.target_date < todayStr;
+  const isOverdue = !task.is_completed && task.target_date.split('T')[0] < todayStr;
 
   useEffect(() => {
     if (isEditing && textareaRef.current) {
@@ -153,7 +153,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
 
   const icon = getTaskIcon(task.title);
   const highlighted = getHighlightSegments(task.title);
-  const dateLabel = new Date(task.target_date + 'T00:00:00').toLocaleDateString('en-US', {
+  const dateLabel = new Date(task.target_date.split('T')[0] + 'T00:00:00').toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
   });

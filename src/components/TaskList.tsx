@@ -73,14 +73,17 @@ export default function TaskList({
   const taskCountByDate = useMemo(() => {
     const map: Record<string, number> = {};
     tasks.forEach((t) => {
-      if (!t.is_completed) map[t.target_date] = (map[t.target_date] || 0) + 1;
+      if (!t.is_completed) {
+        const dateStr = t.target_date.split('T')[0];
+        map[dateStr] = (map[dateStr] || 0) + 1;
+      }
     });
     return map;
   }, [tasks]);
 
   const filteredTasks = useMemo(() => {
     if (!selectedDate) return tasks;
-    return tasks.filter((t) => t.target_date === selectedDate);
+    return tasks.filter((t) => t.target_date.split('T')[0] === selectedDate);
   }, [tasks, selectedDate]);
 
   const pendingTasks = filteredTasks.filter((t) => !t.is_completed);
@@ -89,8 +92,9 @@ export default function TaskList({
   const groupedPending = useMemo(() => {
     const groups: Record<string, Task[]> = {};
     pendingTasks.forEach((t) => {
-      if (!groups[t.target_date]) groups[t.target_date] = [];
-      groups[t.target_date].push(t);
+      const dateStr = t.target_date.split('T')[0];
+      if (!groups[dateStr]) groups[dateStr] = [];
+      groups[dateStr].push(t);
     });
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
   }, [pendingTasks]);
