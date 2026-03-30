@@ -80,33 +80,45 @@ function playDeleteSound() {
 
 /* ── Time Math & Formatting ───────────────────────────── */
 export function formatAMPM(timeStr?: string) {
-  if (!timeStr) return '';
-  const [h, m] = timeStr.split(':');
-  if (!h || !m) return timeStr;
-  const hour = parseInt(h, 10);
+  if (!timeStr) return "";
+  // Strip any existing AM/PM and spaces just in case
+  const cleanTime = timeStr.replace(/am|pm/gi, '').trim();
+  const [hourStr, minute] = cleanTime.split(':');
+  if (!hourStr || !minute) return timeStr;
+  
+  let hour = parseInt(hourStr, 10);
   const ampm = hour >= 12 ? 'PM' : 'AM';
-  const hour12 = hour % 12 || 12;
-  return `${hour12}:${m}${ampm}`;
+  hour = hour % 12;
+  hour = hour ? hour : 12; // '0' becomes '12'
+  return `${hour}:${minute} ${ampm}`;
 }
 
 export function calculateDuration(start: string, end: string) {
-  const [sH, sM] = start.split(':').map(Number);
-  const [eH, eM] = end.split(':').map(Number);
+  if (!start || !end) return "";
   
-  let startTotal = sH * 60 + sM;
-  let endTotal = eH * 60 + eM;
-  
+  // Clean strings so we only do math on 'HH:mm'
+  const cleanStart = start.replace(/am|pm/gi, '').trim();
+  const cleanEnd = end.replace(/am|pm/gi, '').trim();
+
+  const [startH, startM] = cleanStart.split(':').map(Number);
+  const [endH, endM] = cleanEnd.split(':').map(Number);
+
+  if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return "";
+
+  let startTotal = startH * 60 + startM;
+  let endTotal = endH * 60 + endM;
+
   if (endTotal < startTotal) {
-    endTotal += 1440; // Add 24 hours in minutes
+    endTotal += 24 * 60; // Handle midnight crossing
   }
-  
+
   const diff = endTotal - startTotal;
-  const hours = Math.floor(diff / 60);
-  const minutes = diff % 60;
-  
-  if (hours === 0) return `${minutes}m`;
-  if (minutes === 0) return `${hours}h`;
-  return `${hours}h ${minutes}m`;
+  const h = Math.floor(diff / 60);
+  const m = diff % 60;
+
+  if (h > 0 && m > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}h`;
+  return `${m}m`;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -328,28 +340,22 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
 
               {/* ── Time Block Bracket UI ── */}
               {(task.start_time || task.end_time) && (
-                <span className="inline-flex items-center">
-                  <span className="text-gray-600 dark:text-gray-400 text-sm">
-                    [
-                    {task.start_time && (
-                      <span className="px-1.5 py-0.5 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded text-xs font-semibold mx-1">
-                        {formatAMPM(task.start_time)}
-                      </span>
-                    )}
-                    {task.start_time && task.end_time && (
-                      <span>-</span>
-                    )}
-                    {task.end_time && (
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300 mx-1">
-                        {formatAMPM(task.end_time)}
-                      </span>
-                    )}
-                    ]
-                  </span>
-
-                  {/* ── Duration Badge ── */}
+                <span className="ml-2 flex items-center space-x-1">
+                  {task.start_time && (
+                    <span className="px-2 py-1 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded-md text-sm font-semibold">
+                      {formatAMPM(task.start_time)}
+                    </span>
+                  )}
                   {task.start_time && task.end_time && (
-                    <span className="ml-2 px-1.5 py-0.5 bg-[#eaddbe]/30 text-[#8b6f3b] text-[10px] font-bold rounded shadow-sm border border-[#eaddbe]/50">
+                    <span className="text-gray-500 font-medium">-</span>
+                  )}
+                  {task.end_time && (
+                    <span className="px-2 py-1 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded-md text-sm font-semibold">
+                      {formatAMPM(task.end_time)}
+                    </span>
+                  )}
+                  {task.start_time && task.end_time && (
+                    <span className="ml-2 px-2 py-1 bg-[#eaddbe]/30 text-[#8b6f3b] text-sm font-bold rounded-md">
                       {calculateDuration(task.start_time, task.end_time)}
                     </span>
                   )}

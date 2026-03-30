@@ -65,7 +65,8 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         .from('tasks')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('order_index', { ascending: true })
+        .order('created_at', { ascending: true });
 
       if (error) { console.error(error); }
       else { setTasks(data || []); }
@@ -106,7 +107,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
       };
 
       // Optimistic update — show the task immediately
-      setTasks((prev) => [newTask, ...prev]);
+      setTasks((prev) => [...prev, newTask]);
 
       if (!isDemo && !isGhost && userId) {
         // Build payload with only essential columns first.
@@ -123,6 +124,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         if (startTime) payload.start_time = startTime;
         if (endTime) payload.end_time = endTime;
         if (isDaily !== undefined) payload.is_daily = isDaily;
+        if (newTask.order_index !== undefined) payload.order_index = newTask.order_index;
 
         const { error } = await supabase.from('tasks').insert(payload);
         if (error) {
@@ -217,7 +219,8 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         title: t.title,
         is_completed: t.is_completed,
         target_date: t.target_date,
-        time_target_minutes: t.time_target_minutes
+        time_target_minutes: t.time_target_minutes,
+        order_index: t.order_index
       }));
       
       supabase.from('tasks').upsert(updates).then(({ error }) => {
