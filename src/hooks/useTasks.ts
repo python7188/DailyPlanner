@@ -106,46 +106,67 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         });
       };
 
-      const newTask: Task = {
-        id: fallbackId(),
-        user_id: userId || 'demo',
-        title,
-        is_completed: false,
-        target_date: targetDate,
-        time_target_minutes: timeTargetMinutes,
-        start_time: startTime,
-        end_time: endTime,
-        created_at: new Date().toISOString(),
-        order_index: tasks.length,
-      };
+      // ── Bulk Generation Architecture ─────────────────────────────────────────
+      // For daily habits we create 30 individual records (one per day).
+      // Each record is independent so checking off today never affects tomorrow.
+      const daysToGenerate = isDaily ? 30 : 1;
+      const newTasks: Task[] = [];
 
-      // Optimistic upate (FIFO - Append to bottom)
+      for (let i = 0; i < daysToGenerate; i++) {
+        // Calculate date using local time to avoid UTC-offset shifts
+        const d = new Date(targetDate + 'T00:00:00'); // parse as local midnight
+        d.setDate(d.getDate() + i);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dateForDay = `${year}-${month}-${day}`;
+
+        newTasks.push({
+          id: fallbackId(),
+          user_id: userId || 'demo',
+          title,
+          is_completed: false,
+          target_date: dateForDay,
+          time_target_minutes: timeTargetMinutes,
+          start_time: startTime,
+          end_time: endTime,
+          created_at: new Date().toISOString(),
+          order_index: tasks.length + i,
+        });
+      }
+
+      // Optimistic update — append all generated tasks (FIFO)
       setTasks((prev) => {
-        const updatedList = [...prev, newTask];
+        const updatedList = [...prev, ...newTasks];
         if (userId === 'ghost-001') {
           localStorage.setItem('midnight_ghost_tasks', JSON.stringify(updatedList));
         }
         return updatedList;
       });
 
-      // Background DB sync if not a local ghost or demo account
+      // Background DB sync (batch insert) — skip for demo / ghost users
       if (!isDemo && userId && userId !== 'ghost-001') {
-        const payload: any = {
-          id: newTask.id,
-          user_id: userId,
-          title,
-          is_completed: false,
-          target_date: targetDate,
-          order_index: tasks.length,
-        };
-        if (timeTargetMinutes) payload.time_target_minutes = timeTargetMinutes;
-        if (startTime) payload.start_time = startTime;
-        if (endTime) payload.end_time = endTime;
+        const payloads = newTasks.map((t, i) => {
+          const p: any = {
+            id: t.id,
+            user_id: userId,
+            title,
+            is_completed: false,
+            target_date: t.target_date,
+            order_index: tasks.length + i,
+          };
+          if (timeTargetMinutes) p.time_target_minutes = timeTargetMinutes;
+          if (startTime) p.start_time = startTime;
+          if (endTime) p.end_time = endTime;
+          return p;
+        });
 
-        const { error } = await supabase.from('tasks').insert(payload);
+        const { error } = await supabase.from('tasks').insert(payloads);
         if (error) {
-          console.error(error);
-          setTasks((prev) => prev.filter((t) => t.id !== newTask.id));
+          console.error('Bulk insert error:', error);
+          // Roll back all optimistic records on failure
+          const failedIds = new Set(newTasks.map((t) => t.id));
+          setTasks((prev) => prev.filter((t) => !failedIds.has(t.id)));
         }
       }
     },
