@@ -4,16 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CalendarDays, Sparkles } from 'lucide-react';
 
-function formatAMPM(time: string) {
-  if (!time) return undefined;
-  const [hoursStr, minutesStr] = time.split(':');
-  if (!hoursStr || !minutesStr) return undefined;
-  let hours = parseInt(hoursStr, 10);
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12; // the hour '0' should be '12'
-  return `${hours}:${minutesStr} ${ampm}`;
-}
+
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -44,9 +35,9 @@ export default function AddTaskModal({ isOpen, onClose, onAdd, selectedDate }: A
 
   const handleSubmit = () => {
     if (!title.trim()) return;
-    const formattedStart = formatAMPM(startTime);
-    const formattedEnd = formatAMPM(endTime);
-    onAdd(title.trim(), date, formattedStart, formattedEnd, isDaily);
+    // Pass raw HH:MM values — TaskCard handles AM/PM display formatting
+    // Supabase time columns require HH:MM, not "9:00 AM" strings
+    onAdd(title.trim(), date, startTime || undefined, endTime || undefined, isDaily);
     onClose();
   };
 

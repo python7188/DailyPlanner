@@ -4,11 +4,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase, Task, Goal, SubTask } from '@/lib/supabase';
 
 // ============ PLACEHOLDER DATA ============
-const TODAY = new Date().toISOString().split('T')[0];
-const TOMORROW = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-const DAY_AFTER = new Date(Date.now() + 172800000).toISOString().split('T')[0];
-const IN_THREE = new Date(Date.now() + 259200000).toISOString().split('T')[0];
-const IN_FOUR = new Date(Date.now() + 345600000).toISOString().split('T')[0];
+
+// FIX: Generate dates based on the Local System Timezone, NOT UTC.
+const getLocalOffsetDate = (offsetDays: number = 0) => {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const TODAY = getLocalOffsetDate(0);
+const TOMORROW = getLocalOffsetDate(1);
+const DAY_AFTER = getLocalOffsetDate(2);
+const IN_THREE = getLocalOffsetDate(3);
+const IN_FOUR = getLocalOffsetDate(4);
 
 const DEMO_TASKS: Task[] = [
   { id: 'd1', user_id: 'demo', title: 'Build 6-foot, 20mm DIY barbell for home gym', is_completed: false, target_date: TODAY, created_at: new Date().toISOString() },
@@ -70,7 +81,23 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
   }, [userId, isDemo]);
 
   const addTask = useCallback(
-    async (title: string, targetDate: string, timeTargetMinutes?: number) => {
+    async (
+      title: string,
+      targetDate: string,
+      arg3?: string | number,
+      arg4?: string,
+      isDaily?: boolean
+    ) => {
+      let startTime: string | undefined;
+      let endTime: string | undefined = arg4;
+      let timeTargetMinutes: number | undefined;
+
+      if (typeof arg3 === 'number') {
+        timeTargetMinutes = arg3;
+      } else if (typeof arg3 === 'string') {
+        startTime = arg3;
+      }
+
       const fallbackId = () => {
         if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -85,7 +112,9 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         title,
         is_completed: false,
         target_date: targetDate,
-        time_target_minutes: timeTargetMinutes || undefined,
+        time_target_minutes: timeTargetMinutes,
+        start_time: startTime,
+        end_time: endTime,
         created_at: new Date().toISOString(),
         order_index: tasks.length,
       };
@@ -109,9 +138,9 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
           target_date: targetDate,
           order_index: tasks.length,
         };
-        if (timeTargetMinutes) {
-          payload.time_target_minutes = timeTargetMinutes;
-        }
+        if (timeTargetMinutes) payload.time_target_minutes = timeTargetMinutes;
+        if (startTime) payload.start_time = startTime;
+        if (endTime) payload.end_time = endTime;
 
         const { error } = await supabase.from('tasks').insert(payload);
         if (error) {
@@ -170,13 +199,13 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
 
   const reorderTasks = useCallback((reorderedList: Task[]) => {
     // 1. Optimistic UI update
-    
+
     // We only receive the subset of tasks for a specific date that were reordered, 
     // but the main state has ALL tasks.
     setTasks((prev) => {
       // Create a map to ensure we maintain all tasks
       const newTasks = [...prev];
-      
+
       // Update the indices/positions of the reordered subset within the main list
       reorderedList.forEach((task, newIndex) => {
         const globalIndex = newTasks.findIndex(t => t.id === task.id);
@@ -198,7 +227,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         target_date: t.target_date,
         time_target_minutes: t.time_target_minutes
       }));
-      
+
       supabase.from('tasks').upsert(updates).then(({ error }) => {
         if (error) console.error("Error reordering:", error);
       });
@@ -230,7 +259,7 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
 
       if (error) { console.error(error); }
       else { setGoals(data || []); }
-      
+
       const { data: subData, error: subError } = await supabase
         .from('sub_tasks')
         .select('*, goals!inner(user_id)') // Join to ensure user ownership indirectly if needed, or RLS handles it
@@ -340,7 +369,7 @@ export function useGoals(userId: string | undefined, isDemo: boolean) {
 
   const toggleSubTask = useCallback(
     async (id: string) => {
-      setSubTasks((prev) => 
+      setSubTasks((prev) =>
         prev.map((st) => (st.id === id ? { ...st, is_completed: !st.is_completed } : st))
       );
 
