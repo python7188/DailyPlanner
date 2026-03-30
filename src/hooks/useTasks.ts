@@ -12,7 +12,7 @@ const IN_FOUR = new Date(Date.now() + 345600000).toISOString().split('T')[0];
 
 const DEMO_TASKS: Task[] = [
   { id: 'd1', user_id: 'demo', title: 'Build 6-foot, 20mm DIY barbell for home gym', is_completed: false, target_date: TODAY, created_at: new Date().toISOString() },
-  { id: 'd2', user_id: 'demo', title: 'Complete BITSAT previous year mock paper', is_completed: false, target_date: TODAY, created_at: new Date().toISOString() },
+  { id: 'd2', user_id: 'demo', title: 'Complete BITSAT previous year mock paper', is_completed: false, target_date: TODAY, created_at: new Date().toISOString(), time_target_minutes: 180 },
   { id: 'd3', user_id: 'demo', title: 'Review zero-order chemistry reactions', is_completed: false, target_date: TOMORROW, created_at: new Date().toISOString() },
   { id: 'd4', user_id: 'demo', title: 'Design product image layouts for nubie', is_completed: false, target_date: DAY_AFTER, created_at: new Date().toISOString() },
   { id: 'd5', user_id: 'demo', title: 'Review AP Sanskrit syllabus', is_completed: true, target_date: TODAY, created_at: new Date().toISOString() },
@@ -61,13 +61,14 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
   }, [userId, isDemo]);
 
   const addTask = useCallback(
-    async (title: string, targetDate: string) => {
+    async (title: string, targetDate: string, timeTargetMinutes?: number) => {
       const newTask: Task = {
         id: crypto.randomUUID(),
         user_id: userId || 'demo',
         title,
         is_completed: false,
         target_date: targetDate,
+        time_target_minutes: timeTargetMinutes || undefined,
         created_at: new Date().toISOString(),
         order_index: tasks.length,
       };
@@ -82,6 +83,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
           title,
           is_completed: false,
           target_date: targetDate,
+          time_target_minutes: timeTargetMinutes || null,
         });
         if (error) {
           console.error(error);
@@ -164,7 +166,8 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         user_id: t.user_id || userId,
         title: t.title,
         is_completed: t.is_completed,
-        target_date: t.target_date
+        target_date: t.target_date,
+        time_target_minutes: t.time_target_minutes
       }));
       
       supabase.from('tasks').upsert(updates).then(({ error }) => {

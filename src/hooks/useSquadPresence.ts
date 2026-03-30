@@ -10,6 +10,9 @@ export interface SquadMemberState {
   isRunning: boolean;
   timeLeft: string; // e.g., "15:00" or simple raw string depending on formatting
   disciplinePoints: number;
+  startTimestamp?: number;
+  baseElapsed?: number;
+  mode?: 'stopwatch' | 'timer';
 }
 
 export function useSquadPresence(

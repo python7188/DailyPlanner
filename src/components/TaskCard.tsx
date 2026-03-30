@@ -14,8 +14,8 @@ import { getHighlightSegments } from '@/utils/timeParser';
 interface TaskCardProps {
   task: Task;
   onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
   onUpdateTitle: (id: string, title: string) => void;
+  onTimeboxClick?: (minutes: number) => void;
   isToday: boolean;
   index: number;
 }
@@ -81,7 +81,7 @@ function playDeleteSound() {
 /* ═══════════════════════════════════════════════════════
    NOTION-STYLE TASK ROW  (Feature 6 + 7)
    ═══════════════════════════════════════════════════════ */
-export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isToday, index }: TaskCardProps) {
+export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTimeboxClick, isToday, index }: TaskCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(task.title);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -317,6 +317,19 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, isTo
           </motion.span>
         )}
       </div>
+
+      {/* ── Timebox Badge ── */}
+      {task.time_target_minutes && !task.is_completed && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onTimeboxClick) onTimeboxClick(task.time_target_minutes!);
+          }}
+          className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full text-[#CFA660] bg-[#CFA660]/10 border border-[#CFA660]/20 hover:bg-[#CFA660]/20 backdrop-blur-md transition-all cursor-pointer shadow-[0_0_10px_rgba(207,166,96,0.1)] font-mono"
+        >
+          {task.time_target_minutes}m
+        </button>
+      )}
 
       {/* ── Date pill ── */}
       <span className={`

@@ -17,6 +17,7 @@ interface TaskListProps {
   onUpdateTitle: (id: string, title: string) => void;
   onSelectDate?: (date: string | null) => void;
   onReorder?: (newOrder: Task[]) => void;
+  onTimeboxClick?: (minutes: number) => void;
 }
 
 const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -29,6 +30,7 @@ export default function TaskList({
   onUpdateTitle,
   onSelectDate,
   onReorder,
+  onTimeboxClick,
 }: TaskListProps) {
   const todayStr = new Date().toISOString().split('T')[0];
   const [showCompleted, setShowCompleted] = useState(true);
@@ -341,6 +343,7 @@ export default function TaskList({
                       onToggle={onToggle}
                       onDelete={onDelete}
                       onUpdateTitle={onUpdateTitle}
+                      onTimeboxClick={onTimeboxClick}
                       isToday={task.target_date === todayStr}
                       index={i}
                     />
@@ -389,6 +392,7 @@ export default function TaskList({
                       onToggle={onToggle}
                       onDelete={onDelete}
                       onUpdateTitle={onUpdateTitle}
+                      onTimeboxClick={onTimeboxClick}
                       isToday={false}
                       index={i}
                     />

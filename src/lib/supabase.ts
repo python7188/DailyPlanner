@@ -15,6 +15,7 @@ export interface Task {
   target_date: string; // ISO date string YYYY-MM-DD
   created_at: string;
   order_index?: number;
+  time_target_minutes?: number;
 }
 
 export interface Goal {
@@ -49,6 +50,7 @@ CREATE TABLE tasks (
   title TEXT NOT NULL,
   is_completed BOOLEAN DEFAULT false NOT NULL,
   target_date DATE DEFAULT CURRENT_DATE NOT NULL,
+  time_target_minutes INT,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 

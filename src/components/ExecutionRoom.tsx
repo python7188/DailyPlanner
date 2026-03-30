@@ -13,6 +13,7 @@ interface ExecutionRoomProps {
   userId?: string | null;
   userName?: string;
   onSessionComplete?: (sessionTitle: string) => void;
+  onDisciplinePenalty?: (amount: number) => void;
   roomId?: string;
 }
 
@@ -43,7 +44,7 @@ function useAmbientMode(timeoutMs = 10000) {
   return isAmbient;
 }
 
-export default function ExecutionRoom({ userId, userName, onSessionComplete, roomId }: ExecutionRoomProps) {
+export default function ExecutionRoom({ userId, userName, onSessionComplete, onDisciplinePenalty, roomId }: ExecutionRoomProps) {
   const isAmbient = useAmbientMode(10000); 
 
   // Format MS helper
@@ -72,7 +73,13 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
     disciplinePoints: 0,
   });
 
-  const broadcastState = useCallback((isRunning: boolean, timeStr: string) => {
+  const broadcastState = useCallback((
+    isRunning: boolean, 
+    timeStr: string, 
+    mode?: 'stopwatch' | 'timer', 
+    startTimestamp?: number, 
+    baseElapsed?: number
+  ) => {
     if (!roomId) return;
     updateStatus({
       userId: localSquadId,
@@ -80,6 +87,9 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
       isRunning,
       timeLeft: timeStr,
       disciplinePoints: 0,
+      mode,
+      startTimestamp,
+      baseElapsed
     });
   }, [roomId, updateStatus, localSquadId, localUsername]);
 
@@ -148,7 +158,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
   const toggleStopwatch = () => {
     const newState = !swRunning;
     setSwRunning(newState);
-    broadcastState(newState, formatMs(swElapsed));
+    broadcastState(newState, formatMs(swElapsed), 'stopwatch', newState ? Date.now() : undefined, newState ? swElapsed : undefined);
   };
   
   // Triggers Debrief Modal
@@ -263,7 +273,11 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
   const [tmrRemainingMs, setTmrRemainingMs] = useState(0);
   const tmrLastTickRef = useRef<number>(0);
   const [isAlarmRinging, setIsAlarmRinging] = useState(false);
-  const alarmIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Exam Simulator Hardcore Mode State
+  const [isExamMode, setIsExamMode] = useState(false);
+  const [examPenaltyAlert, setExamPenaltyAlert] = useState(false);
 
   // Load Ghost State for Timer
   useEffect(() => {
@@ -272,6 +286,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
       try {
         const parsed = JSON.parse(ghostTimer);
         setTmrTotalMs(parsed.total);
+        if (parsed.isExamMode) setIsExamMode(true);
         if (parsed.running) {
           const now = Date.now();
           const elapsed = now - parsed.lastTick;
@@ -287,57 +302,41 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
     }
   }, []);
 
-  // Cinematic Bell Ringtone Continuous Loop
+  // Custom Timer Ringtone Setup
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const audio = new Audio('/TIMERRINGTONE.mp3');
+      audio.addEventListener('ended', () => {
+        audio.currentTime = 27;
+        audio.play().catch(e => console.error(e));
+      });
+      alarmAudioRef.current = audio;
+    }
+    return () => {
+      if (alarmAudioRef.current) {
+        alarmAudioRef.current.pause();
+      }
+    };
+  }, []);
+
   const triggerAlarm = () => {
     if (typeof window === 'undefined') return;
     setIsAlarmRinging(true);
-    playChime();
-    alarmIntervalRef.current = setInterval(playChime, 4000);
-  };
-
-  const playChime = () => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 500]);
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
-      
-      const playTone = (freq: number, startTime: number, duration: number, vol = 0.3) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
-        
-        gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
-        gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + startTime + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
-        
-        osc.start(ctx.currentTime + startTime);
-        osc.stop(ctx.currentTime + startTime + duration);
-      };
-      
-      playTone(587.33, 0, 3, 0.4);    // D5
-      playTone(739.99, 0.1, 3, 0.3);  // F#5
-      playTone(880.00, 0.2, 3, 0.2);  // A5
-      playTone(1108.73, 0.3, 3, 0.2); // C#6
-      playTone(1318.51, 0.5, 4, 0.1); // E6
-    } catch(e) {}
+    
+    if (alarmAudioRef.current) {
+      alarmAudioRef.current.currentTime = 27;
+      alarmAudioRef.current.play().catch(e => console.error(e));
+    }
   };
 
   const stopAlarm = () => {
     setIsAlarmRinging(false);
-    if (alarmIntervalRef.current) clearInterval(alarmIntervalRef.current);
+    if (alarmAudioRef.current) {
+      alarmAudioRef.current.pause();
+    }
     resetTimer();
   };
-
-  useEffect(() => {
-    return () => {
-      if (alarmIntervalRef.current) clearInterval(alarmIntervalRef.current);
-    }
-  }, []);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -351,7 +350,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
         setTmrRemainingMs(prev => {
           if (prev === 0) return 0; // Already done
           const next = Math.max(0, prev - delta);
-          localStorage.setItem('ghost_timer', JSON.stringify({ total: tmrTotalMs, remaining: next, running: true, lastTick: now }));
+          localStorage.setItem('ghost_timer', JSON.stringify({ total: tmrTotalMs, remaining: next, running: true, lastTick: now, isExamMode }));
           if (next === 0 && !isAlarmRinging) {
             setTmrRunning(false);
             triggerAlarm();
@@ -361,7 +360,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
       }, 50);
     } else {
       setTmrRemainingMs(prev => {
-        localStorage.setItem('ghost_timer', JSON.stringify({ total: tmrTotalMs, remaining: prev, running: false, lastTick: Date.now() }));
+        localStorage.setItem('ghost_timer', JSON.stringify({ total: tmrTotalMs, remaining: prev, running: false, lastTick: Date.now(), isExamMode }));
         return prev;
       });
     }
@@ -378,7 +377,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
         setTmrTotalMs(ms);
         setTmrRemainingMs(ms);
         setTmrRunning(true);
-        broadcastState(true, formatMs(ms));
+        broadcastState(true, formatMs(ms), 'timer', Date.now(), ms);
       }
     } else if (tmrRemainingMs > 0) {
       if (tmrRemainingMs === 0 && !tmrRunning) {
@@ -386,7 +385,7 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
       }
       const newState = !tmrRunning;
       setTmrRunning(newState);
-      broadcastState(newState, formatMs(tmrRemainingMs));
+      broadcastState(newState, formatMs(tmrRemainingMs), 'timer', newState ? Date.now() : undefined, newState ? tmrRemainingMs : undefined);
     }
   };
 
@@ -395,13 +394,53 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
     setTmrRemainingMs(0);
     setTmrTotalMs(0);
     setTmrInputStr('');
+    setIsExamMode(false);
     localStorage.removeItem('ghost_timer');
     broadcastState(false, '00:00');
   };
 
+  const promptExam = () => {
+    const minsStr = window.prompt("Enter Exam Duration (minutes)\\n\\nWARNING: The dashboard will vanish. If you leave the tab you will instantly lose 25 Discipline Points!");
+    if (minsStr) {
+      const mins = parseFloat(minsStr);
+      if (!isNaN(mins) && mins > 0) {
+        setIsExamMode(true);
+        const ms = Math.floor(mins * 60 * 1000);
+        setTmrTotalMs(ms);
+        setTmrRemainingMs(ms);
+        setTmrRunning(true);
+        broadcastState(true, formatMs(ms), 'timer', Date.now(), ms);
+      }
+    }
+  };
+
+  // Panopticon Tab Blur Monitor
+  useEffect(() => {
+    const handleBlur = () => {
+      // If strictly in an exam and naturally ticking
+      if (isExamMode && tmrRunning) {
+        if (onDisciplinePenalty) {
+           onDisciplinePenalty(-25);
+        }
+        setExamPenaltyAlert(true);
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
+      }
+    };
+    
+    // Listen for visibility loss or blur
+    window.addEventListener('blur', handleBlur);
+    const handleVis = () => { if (document.hidden) handleBlur(); };
+    document.addEventListener('visibilitychange', handleVis);
+
+    return () => {
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('visibilitychange', handleVis);
+    };
+  }, [isExamMode, tmrRunning, onDisciplinePenalty]);
+
   return (
-    <div className="flex w-full h-full bg-[var(--color-bg)] relative">
-      <div className={`flex flex-col relative transition-all duration-500 overflow-hidden ${roomId ? 'w-3/4' : 'w-full'}`}>
+    <div className="flex flex-col md:flex-row w-full h-full bg-[var(--color-bg)] relative overflow-y-auto md:overflow-hidden">
+      <div className={`flex flex-col relative transition-all duration-500 overflow-hidden shrink-0 ${roomId ? 'w-full h-[55vh] md:h-full md:w-3/4' : 'w-full h-full'}`}>
 
       {/* SUCCESS TOAST OVERLAY */}
       <AnimatePresence>
@@ -460,26 +499,38 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
           <div className="absolute top-4 left-6 text-xs font-bold uppercase tracking-widest text-[var(--color-gold)] opacity-50">Custom Timer</div>
           
           {!tmrRunning && tmrRemainingMs === 0 && !isAlarmRinging ? (
-            <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
-              <input 
-                type="number"
-                placeholder="Enter minutes..."
-                value={tmrInputStr}
-                onChange={(e) => setTmrInputStr(e.target.value)}
-                className="w-32 sm:w-64 bg-transparent border-b-2 border-white/20 focus:border-[var(--color-gold)] text-center text-3xl font-light text-[var(--color-text-primary)] px-2 sm:px-4 py-2 outline-none transition-colors"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') toggleTimer();
-                }}
-              />
-              {tmrInputStr && (
+            <>
+              <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
+                <input 
+                  type="number"
+                  placeholder="Enter minutes..."
+                  value={tmrInputStr}
+                  onChange={(e) => setTmrInputStr(e.target.value)}
+                  className="w-32 sm:w-64 bg-transparent border-b-2 border-white/20 focus:border-[var(--color-gold)] text-center text-3xl font-light text-[var(--color-text-primary)] px-2 sm:px-4 py-2 outline-none transition-colors"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') toggleTimer();
+                  }}
+                />
+                {tmrInputStr && (
+                  <button 
+                    onClick={toggleTimer}
+                    className="btn-gold rounded-full px-5 py-2 sm:px-8 sm:py-3 font-bold text-white shadow-lg active:scale-95 transition-transform"
+                  >
+                    Set
+                  </button>
+                )}
+              </div>
+              
+              {!tmrRunning && tmrRemainingMs === 0 && (
                 <button 
-                  onClick={toggleTimer}
-                  className="btn-gold rounded-full px-5 py-2 sm:px-8 sm:py-3 font-bold text-white shadow-lg active:scale-95 transition-transform"
+                  onClick={promptExam}
+                  className="absolute bottom-4 uppercase tracking-widest text-[9px] font-bold text-red-500 hover:text-red-400 transition-colors"
+                  title="Strips away the OS. Forces completely distraction focus. Penalizes on-blur."
                 >
-                  Set
+                  Initiate Exam Protocol
                 </button>
               )}
-            </div>
+            </>
           ) : (
             <div className="flex flex-col items-center">
               <h2 className="text-4xl sm:text-5xl font-light tracking-tight tabular-nums relative">
@@ -607,10 +658,8 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
 
       {roomId && (
         /* SQUAD MODE: WAR ROOM SPECTATOR UI FOCUS */
-        <div className="w-full h-full relative z-10 flex items-center justify-center bg-[var(--color-bg)]/50 backdrop-blur-md p-4 sm:p-8">
-           <div className="w-full max-w-2xl mx-auto h-[80vh] flex flex-col">
-              <WarRoomSidebar squadMembers={squadMembers} />
-           </div>
+        <div className="w-full md:w-1/4 min-h-[45vh] md:h-full relative z-10 border-t md:border-t-0 md:border-l border-[var(--color-border)] bg-[var(--color-bg-sidebar)]/30 backdrop-blur-md p-2 sm:p-4 shrink-0 overflow-y-auto">
+           <WarRoomSidebar squadMembers={squadMembers} />
         </div>
       )}
       
@@ -623,6 +672,63 @@ export default function ExecutionRoom({ userId, userName, onSessionComplete, roo
           username={localUsername}
         />
       )}
+
+      {/* =========================================
+          EXAM SIMULATOR PANOPTICON OVERLAY
+          ========================================= */}
+      <AnimatePresence>
+        {isExamMode && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4 sm:p-8 overflow-hidden"
+          >
+            {/* The Smoked Glass Timer Box */}
+            <h2 className="text-[var(--color-gold)]/50 tracking-[0.5em] text-sm font-bold uppercase mb-8 sm:mb-12">Exam Protocol Active</h2>
+            
+            <div className="relative p-8 sm:p-24 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] sm:rounded-[3rem] shadow-[0_0_100px_rgba(255,215,0,0.05)] text-center w-full max-w-4xl flex flex-col items-center justify-center overflow-hidden">
+              <h1 className="text-7xl sm:text-[140px] md:text-[200px] lg:text-[280px] leading-none font-light tracking-tighter tabular-nums drop-shadow-2xl text-white">
+                {isAlarmRinging ? "00:00" : formatMs(tmrRemainingMs)}
+              </h1>
+              
+              <div className="mt-12 sm:mt-16 flex gap-4 sm:gap-8">
+                {isAlarmRinging ? (
+                  <button onClick={stopAlarm} className="text-lg sm:text-xl font-bold px-8 py-4 sm:px-12 sm:py-6 rounded-full bg-red-600 text-white animate-pulse">Silence Alarm</button>
+                ) : (
+                  <button 
+                  onClick={() => {
+                    if (window.confirm("Abort Exam Mode? You will lose all current progress.")) {
+                      setIsExamMode(false);
+                      resetTimer();
+                    }
+                  }} 
+                  className="px-6 py-3 border border-white/20 rounded-full text-white/30 hover:text-red-400 hover:border-red-500/50 transition-colors uppercase tracking-widest text-[10px] sm:text-xs font-bold"
+                >
+                  Surrender / Abort
+                </button>
+                )}
+              </div>
+            </div>
+
+            {/* Red Penalty Warning Modal */}
+            <AnimatePresence>
+              {examPenaltyAlert && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9, y: 50 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 50 }}
+                  className="absolute bottom-8 sm:bottom-12 mx-4 bg-[#1a0505] border border-red-500/50 p-6 sm:p-8 rounded-[2rem] shadow-[0_0_100px_rgba(239,68,68,0.3)] flex flex-col items-center"
+                >
+                  <span className="text-red-400 font-bold text-center text-3xl sm:text-4xl uppercase tracking-tighter mb-4">Focus Lost</span>
+                  <span className="text-red-200/80 text-center text-sm sm:text-lg mb-6 max-w-sm">A massive discipline penalty <span className="text-red-400 font-bold">(-25 pts)</span> has been logged to your score. Do not navigate away from the exam constraints.</span>
+                  <button onClick={() => setExamPenaltyAlert(false)} className="w-full px-8 py-4 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-full font-bold text-red-400 uppercase tracking-widest text-xs transition-colors">Understood</button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -124,6 +124,19 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
     [goals, updateGoalProgress, haptic]
   );
 
+  // Timeboxing Handshake: Set local storage ghost_timer and jump to Execution Room
+  const handleTimeboxClick = useCallback((minutes: number) => {
+    const ms = minutes * 60 * 1000;
+    localStorage.setItem('ghost_timer', JSON.stringify({
+      total: ms,
+      remaining: ms,
+      running: true,
+      lastTick: Date.now()
+    }));
+    setActiveView('execution');
+    haptic([50, 50, 50]); // Triple tick pulse
+  }, [haptic]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setIsDemo(false);
@@ -236,6 +249,8 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
               >
                 <ExecutionRoom 
                   userId={userId} 
+                  userName={firstName}
+                  onDisciplinePenalty={applyDelta}
                   onSessionComplete={(title) => {
                     addTask(title, todayStrForInit);
                     // Provide a nice haptic tick if available
@@ -259,6 +274,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
                   onUpdateTitle={updateTaskTitle}
                   onSelectDate={setSelectedDate}
                   onReorder={reorderTasks}
+                  onTimeboxClick={handleTimeboxClick}
                 />
               </motion.div>
             )}

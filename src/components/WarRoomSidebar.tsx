@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Crown, User } from 'lucide-react';
 import type { SquadMemberState } from '@/hooks/useSquadPresence';
@@ -12,6 +12,30 @@ interface WarRoomSidebarProps {
 export default function WarRoomSidebar({ squadMembers }: WarRoomSidebarProps) {
   // Find highest discipline points to award the Crown
   const highestScore = Math.max(...squadMembers.map(m => m.disciplinePoints), 0);
+
+  // Local ticker for smooth real-time visualization without WebSocket spam
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    let frameId: number;
+    const tick = () => {
+      setNow(Date.now());
+      frameId = requestAnimationFrame(tick);
+    };
+    frameId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameId);
+  }, []);
+
+  const formatTime = (ms: number) => {
+    const totalSecs = Math.floor(ms / 1000);
+    const h = Math.floor(totalSecs / 3600);
+    const m = Math.floor((totalSecs % 3600) / 60);
+    const s = totalSecs % 60;
+    
+    const hStr = h > 0 ? String(h).padStart(2, '0') + ':' : '';
+    const mStr = String(m).padStart(2, '0');
+    const sStr = String(s).padStart(2, '0');
+    return `${hStr}${mStr}:${sStr}`;
+  };
 
   return (
     <div className="w-full h-full bg-black/40 backdrop-blur-xl border-l border-white/10 p-6 flex flex-col rounded-tl-3xl shadow-[-10px_0_30px_rgba(0,0,0,0.5)]">
@@ -28,6 +52,18 @@ export default function WarRoomSidebar({ squadMembers }: WarRoomSidebarProps) {
         <AnimatePresence>
           {squadMembers.map((member) => {
             const isCrown = member.disciplinePoints > 0 && member.disciplinePoints === highestScore;
+
+            let displayTime = member.timeLeft;
+            if (member.isRunning && member.startTimestamp !== undefined && member.baseElapsed !== undefined) {
+              const delta = now - member.startTimestamp;
+              if (member.mode === 'timer') {
+                const remaining = Math.max(0, member.baseElapsed - delta);
+                displayTime = formatTime(remaining);
+              } else {
+                const elapsed = member.baseElapsed + delta;
+                displayTime = formatTime(elapsed);
+              }
+            }
 
             return (
               <motion.div
@@ -72,7 +108,7 @@ export default function WarRoomSidebar({ squadMembers }: WarRoomSidebarProps) {
                     {/* Live Status readout */}
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="font-mono text-gray-300 text-xs font-bold tracking-wider">
-                        {member.timeLeft}
+                        {displayTime}
                       </span>
                       {!member.isRunning && (
                         <span className="text-[var(--color-text-ghost)] uppercase tracking-widest text-[10px] font-bold">
