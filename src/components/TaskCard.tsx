@@ -14,6 +14,7 @@ import { getHighlightSegments } from '@/utils/timeParser';
 interface TaskCardProps {
   task: Task;
   onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
   onUpdateTitle: (id: string, title: string) => void;
   onTimeboxClick?: (minutes: number) => void;
   isToday: boolean;
