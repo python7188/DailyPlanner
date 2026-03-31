@@ -339,17 +339,17 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleEditSave(); }
                   if (e.key === 'Escape') setIsEditing(false);
                 }}
-                className="w-full bg-transparent text-base font-medium text-[var(--color-text-primary)] resize-none border-b-2 border-[var(--color-gold)] outline-none py-0.5"
+                className="w-full bg-transparent text-base font-bold text-[var(--color-text-primary)] resize-none border-b-2 border-[var(--color-gold)] outline-none py-0.5"
                 rows={1}
               />
             ) : (
               <div className="relative">
-                <p className={`font-medium text-sm md:text-base leading-tight break-words transition-colors duration-300 ${
+                <p className={`font-bold text-[15px] md:text-[17px] leading-tight break-words transition-colors duration-300 ${
                   task.is_completed
-                    ? 'text-[var(--color-text-ghost)]'
+                    ? 'text-[var(--color-text-ghost)] font-medium'
                     : isOverdue
                     ? 'text-red-400 kinetic-overdue'
-                    : 'text-[#EADDBE]'
+                    : 'text-white tracking-wide drop-shadow-sm'
                 }`}>
                   {highlighted.map((seg, j) =>
                     !seg.isTime ? (
@@ -402,7 +402,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
               <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
                 
                 {/* OPENING BRACKET */}
-                <span className="text-[var(--color-gold)] opacity-70 font-medium text-[11px] sm:text-sm">[</span>
+                <span className="text-black font-black text-[15px] sm:text-[18px] leading-none flex items-center translate-y-[0.5px] drop-shadow-sm">[</span>
 
                 {/* START TIME: Responsive Gold Box */}
                 {task.start_time && (
@@ -413,7 +413,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                 
                 {/* DASH SEPARATOR */}
                 {task.start_time && task.end_time && (
-                  <span className="opacity-50 text-[var(--color-gold)] font-medium text-[10px] sm:text-xs">-</span>
+                  <span className="opacity-70 text-black font-bold text-[10px] sm:text-[14px]">-</span>
                 )}
                 
                 {/* END TIME: Responsive Gold Box */}
@@ -424,11 +424,11 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                 )}
                 
                 {/* CLOSING BRACKET */}
-                <span className="text-[var(--color-gold)] opacity-70 font-medium text-[11px] sm:text-sm">]</span>
+                <span className="text-black font-black text-[15px] sm:text-[18px] leading-none flex items-center translate-y-[0.5px] drop-shadow-sm">]</span>
 
                 {/* CALCULATED DURATION */}
                 {task.start_time && task.end_time && (
-                  <span className="text-[var(--color-gold)] opacity-90 font-extrabold uppercase text-[9px] sm:text-[11px] tracking-wider shrink-0 ml-0.5 sm:ml-1">
+                  <span className="text-[var(--color-gold)] opacity-90 font-extrabold uppercase text-[9px] sm:text-[12px] tracking-wider shrink-0 ml-0.5 sm:ml-1">
                     {calculateDuration(task.start_time, task.end_time)}
                   </span>
                 )}
