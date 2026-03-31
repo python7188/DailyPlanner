@@ -232,17 +232,13 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
         exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.25 } }}
         transition={{ duration: 0.35, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
         dragListener={!task.is_completed}
-        /* 2. THE X-AXIS LOCK */
-        drag={task.is_completed ? false : 'x'}
-        dragDirectionLock={true}
-        dragConstraints={{ right: 0 }}
-        dragElastic={{ left: 0.3, right: 0 }}
         style={{
           x: swipeX,
           rotateX: task.is_completed ? 0 : rotateX,
           rotateY: task.is_completed ? 0 : rotateY,
           transformStyle: 'preserve-3d',
           transformPerspective: 800,
+          touchAction: 'pan-x',
           backgroundColor: 'var(--color-bg)',
           position: 'relative',
           zIndex: 1,
@@ -402,55 +398,45 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                 </button>
               )}
 
-              {/* Date pill */}
-              <span className={`
-                flex-shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-md
-                ${isToday && !task.is_completed
-                  ? 'bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)]'
-                  : isOverdue
-                  ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                  : 'bg-[var(--color-bg-input)] text-[var(--color-text-ghost)]'
-                }
-              `}>
-                {dateLabel}
-              </span>
+              {/* Date pill removed */}
 
               {/* ── Desktop/Laptop Time Block (Hidden on Mobile) ── */}
-              {hasTimeBlock && !task.is_completed && (
-                <span className="hidden sm:inline-flex ml-2 items-center text-[var(--color-gold)] text-sm font-bold tracking-tight">
-                  <span className="opacity-80 mr-1.5">[</span>
-                  {task.start_time && <span>{formatAMPM(task.start_time)}</span>}
-                  {task.start_time && task.end_time && <span className="mx-1.5 opacity-60">-</span>}
-                  {task.end_time && <span>{formatAMPM(task.end_time)}</span>}
-                  <span className="opacity-80 ml-1.5 mr-2">]</span>
+              {(task.start_time || task.end_time) && (
+                <div className="hidden sm:flex items-center gap-2 ml-3">
+                  {/* The Unified Gold Box */}
+                  <span className="flex items-center gap-1.5 bg-[#FDF8EE] border border-[#EADDBE] px-2.5 py-0.5 rounded-md shadow-sm text-[var(--color-gold)] text-xs font-bold tracking-tight">
+                    <span className="opacity-70">[</span>
+                    {task.start_time && <span>{formatAMPM(task.start_time)}</span>}
+                    {task.start_time && task.end_time && <span className="opacity-50">-</span>}
+                    {task.end_time && <span>{formatAMPM(task.end_time)}</span>}
+                    <span className="opacity-70">]</span>
+                  </span>
+                  
+                  {/* Calculated Duration outside the box */}
                   {task.start_time && task.end_time && (
-                    <span className="text-[#8b6f3b] font-extrabold uppercase text-xs tracking-wider">
+                    <span className="text-[#8b6f3b] font-extrabold uppercase text-xs tracking-wider shrink-0">
                       {calculateDuration(task.start_time, task.end_time)}
                     </span>
                   )}
-                </span>
+                </div>
               )}
             </div>
 
-            {/* ── Mobile Time Block ── */}
-            {hasTimeBlock && !task.is_completed && (
-              <div className="flex sm:hidden w-fit items-center gap-1 bg-[#FDF8EE] border border-[#EADDBE] px-2 py-0.5 rounded-md shadow-sm">
-                {task.start_time && (
-                  <span className="text-[#B8934A] text-[10px] font-bold uppercase tracking-wide">
-                    {formatAMPM(task.start_time)}
-                  </span>
-                )}
+            {/* ── Mobile Time Block (Hidden on Desktop) ── */}
+            {(task.start_time || task.end_time) && (
+              <div className="flex sm:hidden items-center gap-2 mt-0.5">
+                {/* The Unified Gold Box (Mobile Scaled) */}
+                <span className="flex items-center gap-1 w-fit bg-[#FDF8EE] border border-[#EADDBE] px-2 py-0.5 rounded-md shadow-sm text-[var(--color-gold)] text-[11px] font-bold tracking-tight">
+                  <span className="opacity-70">[</span>
+                  {task.start_time && <span>{formatAMPM(task.start_time)}</span>}
+                  {task.start_time && task.end_time && <span className="opacity-50">-</span>}
+                  {task.end_time && <span>{formatAMPM(task.end_time)}</span>}
+                  <span className="opacity-70">]</span>
+                </span>
+                
+                {/* Calculated Duration outside the box */}
                 {task.start_time && task.end_time && (
-                  <span className="text-[var(--color-text-ghost)] text-[10px] mx-0.5">-</span>
-                )}
-                {task.end_time && (
-                  <span className="text-[#B8934A] text-[10px] font-bold uppercase tracking-wide">
-                    {formatAMPM(task.end_time)}
-                  </span>
-                )}
-                <span className="text-[#B8934A] opacity-50 px-0.5 font-light text-[10px]">|</span>
-                {task.start_time && task.end_time && (
-                  <span className="text-[#8b6f3b] text-[10px] font-extrabold uppercase ml-0.5 tracking-wider">
+                  <span className="text-[#8b6f3b] font-extrabold uppercase text-[10px] tracking-wider shrink-0">
                     {calculateDuration(task.start_time, task.end_time)}
                   </span>
                 )}

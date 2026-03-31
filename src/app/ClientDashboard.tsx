@@ -571,7 +571,7 @@ function MobileNav({
             exit={{ scale: 0, opacity: 0 }}
             whileTap={{ scale: 0.88 }}
             onClick={onOpenAddModal}
-            className="fixed bottom-24 md:bottom-10 right-4 md:right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-50 touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
+            className="fixed bottom-[90px] md:bottom-10 right-5 md:right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-50 touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
           >
             <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />
           </motion.button>
