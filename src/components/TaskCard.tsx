@@ -328,106 +328,107 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
           </div>
 
           {/* Title Area Wrapper */}
-          <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              {isEditing ? (
-                <textarea
-                  ref={textareaRef}
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onBlur={handleEditSave}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleEditSave(); }
-                    if (e.key === 'Escape') setIsEditing(false);
-                  }}
-                  className="w-full bg-transparent text-base font-medium text-[var(--color-text-primary)] resize-none border-b-2 border-[var(--color-gold)] outline-none py-0.5"
-                  rows={1}
-                />
-              ) : (
-                <div className="relative">
-                  <p className={`text-base font-medium leading-snug break-words transition-colors duration-300 ${
-                    task.is_completed
-                      ? 'text-[var(--color-text-ghost)]'
-                      : isOverdue
-                      ? 'text-red-400 kinetic-overdue'
-                      : 'text-[var(--color-text-primary)]'
-                  }`}>
-                    {highlighted.map((seg, j) =>
-                      !seg.isTime ? (
-                        <span key={j}>{seg.text}</span>
-                      ) : (
-                        <span key={j} className="gold-pill font-bold px-1.5 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] mx-1 text-sm shadow-[0_0_10px_rgba(212,161,39,0.2)] whitespace-nowrap">
-                          {seg.text}
-                        </span>
-                      )
-                    )}
-                  </p>
-                  {task.is_completed && (
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: '100%' }}
-                      transition={{ duration: 0.3, ease: 'easeOut' }}
-                      className="absolute left-0 top-1/2 -translate-y-1/2 h-[1.5px] bg-[var(--color-text-ghost)] rounded-full"
-                    />
+          <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1">
+            {isEditing ? (
+              <textarea
+                ref={textareaRef}
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={handleEditSave}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleEditSave(); }
+                  if (e.key === 'Escape') setIsEditing(false);
+                }}
+                className="w-full bg-transparent text-base font-medium text-[var(--color-text-primary)] resize-none border-b-2 border-[var(--color-gold)] outline-none py-0.5"
+                rows={1}
+              />
+            ) : (
+              <div className="relative">
+                <p className={`font-medium text-sm md:text-base leading-tight break-words transition-colors duration-300 ${
+                  task.is_completed
+                    ? 'text-[var(--color-text-ghost)]'
+                    : isOverdue
+                    ? 'text-red-400 kinetic-overdue'
+                    : 'text-[#EADDBE]'
+                }`}>
+                  {highlighted.map((seg, j) =>
+                    !seg.isTime ? (
+                      <span key={j}>{seg.text}</span>
+                    ) : (
+                      <span key={j} className="gold-pill font-bold px-1.5 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] mx-1 text-sm shadow-[0_0_10px_rgba(212,161,39,0.2)] whitespace-nowrap">
+                        {seg.text}
+                      </span>
+                    )
                   )}
-                </div>
-              )}
+                </p>
+                {task.is_completed && (
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: '100%' }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-[1.5px] bg-[var(--color-text-ghost)] rounded-full"
+                  />
+                )}
+              </div>
+            )}
 
-              {/* Overdue badge */}
-              {isOverdue && (
-                <motion.span
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="flex-shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-red-500/10 border border-red-500/30 text-[9px] font-bold text-red-400 uppercase tracking-wider"
-                >
-                  <AlertTriangle className="w-2.5 h-2.5" />
-                  Late
-                </motion.span>
-              )}
+            {/* Overdue badge */}
+            {isOverdue && (
+              <motion.span
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex-shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-red-500/10 border border-red-500/30 text-[9px] font-bold text-red-400 uppercase tracking-wider"
+              >
+                <AlertTriangle className="w-2.5 h-2.5" />
+                Late
+              </motion.span>
+            )}
 
-              {/* Timebox Badge */}
-              {task.time_target_minutes && !task.is_completed && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (onTimeboxClick) onTimeboxClick(task.time_target_minutes!);
-                  }}
-                  className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full text-[#CFA660] bg-[#CFA660]/10 border border-[#CFA660]/20 hover:bg-[#CFA660]/20 backdrop-blur-md transition-all cursor-pointer shadow-[0_0_10px_rgba(207,166,96,0.1)] font-mono"
-                >
-                  {task.time_target_minutes}m
-                </button>
-              )}
+            {/* Timebox Badge */}
+            {task.time_target_minutes && !task.is_completed && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onTimeboxClick) onTimeboxClick(task.time_target_minutes!);
+                }}
+                className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full text-[#CFA660] bg-[#CFA660]/10 border border-[#CFA660]/20 hover:bg-[#CFA660]/20 backdrop-blur-md transition-all cursor-pointer shadow-[0_0_10px_rgba(207,166,96,0.1)] font-mono"
+              >
+                {task.time_target_minutes}m
+              </button>
+            )}
 
-              {/* Date pill removed */}
-
-            </div>
-
-            {/* ── Universal Time Block (Desktop & Mobile) ── */}
+            {/* ── Universal Inline Time Block (Desktop & Mobile) ── */}
             {(task.start_time || task.end_time) && (
-              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+              <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
                 
-                {/* START TIME: Individual Gold Box */}
+                {/* OPENING BRACKET */}
+                <span className="text-[var(--color-gold)] opacity-70 font-medium text-[11px] sm:text-sm">[</span>
+
+                {/* START TIME: Responsive Gold Box */}
                 {task.start_time && (
-                  <span className="font-bold px-2 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] text-[11px] shadow-[0_0_10px_rgba(212,161,39,0.2)] flex items-center w-fit">
+                  <span className="font-bold px-1.5 py-[1px] sm:px-2 sm:py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] text-[10px] sm:text-xs shadow-[0_0_10px_rgba(212,161,39,0.2)] flex items-center w-fit">
                     {formatAMPM(task.start_time)}
                   </span>
                 )}
                 
                 {/* DASH SEPARATOR */}
                 {task.start_time && task.end_time && (
-                  <span className="opacity-50 text-[var(--color-gold)] font-medium">-</span>
+                  <span className="opacity-50 text-[var(--color-gold)] font-medium text-[10px] sm:text-xs">-</span>
                 )}
                 
-                {/* END TIME: Individual Gold Box */}
+                {/* END TIME: Responsive Gold Box */}
                 {task.end_time && (
-                  <span className="font-bold px-2 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] text-[11px] shadow-[0_0_10px_rgba(212,161,39,0.2)] flex items-center w-fit">
+                  <span className="font-bold px-1.5 py-[1px] sm:px-2 sm:py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] text-[10px] sm:text-xs shadow-[0_0_10px_rgba(212,161,39,0.2)] flex items-center w-fit">
                     {formatAMPM(task.end_time)}
                   </span>
                 )}
                 
+                {/* CLOSING BRACKET */}
+                <span className="text-[var(--color-gold)] opacity-70 font-medium text-[11px] sm:text-sm">]</span>
+
                 {/* CALCULATED DURATION */}
                 {task.start_time && task.end_time && (
-                  <span className="text-[var(--color-gold)] opacity-90 font-extrabold uppercase text-[10px] tracking-wider shrink-0 ml-1">
+                  <span className="text-[var(--color-gold)] opacity-90 font-extrabold uppercase text-[9px] sm:text-[11px] tracking-wider shrink-0 ml-0.5 sm:ml-1">
                     {calculateDuration(task.start_time, task.end_time)}
                   </span>
                 )}
