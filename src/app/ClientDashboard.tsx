@@ -527,7 +527,7 @@ function MobileNav({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="flex items-center gap-1 overflow-x-auto pb-1"
+              className="flex items-center gap-1 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
               {dates.map((d) => {
                 const label =
@@ -561,10 +561,9 @@ function MobileNav({
           )}
         </AnimatePresence>
       </div>
-
-      {/* Floating Action Button (FAB) Mobile - True Fixed Position */}
+      
       <AnimatePresence>
-        {activeView === 'tasks' && (
+        {activeView === 'tasks' && !showSquadMenu && (
           <motion.button
             key="mobile-fab-add"
             initial={{ scale: 0, opacity: 0 }}
@@ -572,7 +571,7 @@ function MobileNav({
             exit={{ scale: 0, opacity: 0 }}
             whileTap={{ scale: 0.88 }}
             onClick={onOpenAddModal}
-            className="fixed bottom-24 right-4 w-12 h-12 rounded-full btn-gold shadow-[0_4px_20px_rgba(212,161,39,0.4)] flex items-center justify-center hover:brightness-110 transition-all z-[60]"
+            className="fixed bottom-24 md:bottom-10 right-4 md:right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-50 touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
           >
             <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />
           </motion.button>

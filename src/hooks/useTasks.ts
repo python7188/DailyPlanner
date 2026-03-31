@@ -235,7 +235,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         }
       });
       // Sort the whole array just in case
-      return newTasks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+      return newTasks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0) || new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     });
 
     if (!isDemo) {
