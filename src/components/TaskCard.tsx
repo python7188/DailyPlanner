@@ -400,37 +400,23 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
 
               {/* Date pill removed */}
 
-              {/* ── Desktop/Laptop Time Block (Hidden on Mobile) ── */}
-              {(task.start_time || task.end_time) && (
-                <div className="hidden sm:flex items-center gap-1.5 ml-2">
-                  <span className="flex items-center gap-1.5 w-fit bg-[#FDF8EE] border border-[#EADDBE] px-2 py-0.5 rounded-md shadow-sm text-[var(--color-gold)] text-xs font-bold tracking-tight">
-                    <span className="opacity-70">[</span>
-                    {task.start_time && <span>{formatAMPM(task.start_time)}</span>}
-                    {task.start_time && task.end_time && <span className="opacity-50">-</span>}
-                    {task.end_time && <span>{formatAMPM(task.end_time)}</span>}
-                    <span className="opacity-70">]</span>
-                  </span>
-                  {task.start_time && task.end_time && (
-                    <span className="text-[#8b6f3b] font-extrabold uppercase text-[11px] tracking-wider shrink-0">
-                      {calculateDuration(task.start_time, task.end_time)}
-                    </span>
-                  )}
-                </div>
-              )}
             </div>
 
-            {/* ── Mobile Time Block (Hidden on Desktop) ── */}
+            {/* ── Universal Time Block (Desktop & Mobile) ── */}
             {(task.start_time || task.end_time) && (
-              <div className="flex sm:hidden items-center gap-1.5 mt-0.5">
-                <span className="flex items-center gap-1.5 w-fit bg-[#FDF8EE] border border-[#EADDBE] px-2 py-0.5 rounded-md shadow-sm text-[var(--color-gold)] text-xs font-bold tracking-tight">
-                  <span className="opacity-70">[</span>
+              <div className="flex items-center gap-2 mt-1">
+                {/* The Premium Math Class Gold Pill */}
+                <span className="font-bold px-2 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] text-xs shadow-[0_0_10px_rgba(212,161,39,0.2)] flex items-center gap-1 w-fit">
+                  <span className="opacity-70 font-normal">[</span>
                   {task.start_time && <span>{formatAMPM(task.start_time)}</span>}
-                  {task.start_time && task.end_time && <span className="opacity-50">-</span>}
+                  {task.start_time && task.end_time && <span className="opacity-60 font-medium">-</span>}
                   {task.end_time && <span>{formatAMPM(task.end_time)}</span>}
-                  <span className="opacity-70">]</span>
+                  <span className="opacity-70 font-normal">]</span>
                 </span>
+                
+                {/* Calculated Duration */}
                 {task.start_time && task.end_time && (
-                  <span className="text-[#8b6f3b] font-extrabold uppercase text-[11px] tracking-wider shrink-0">
+                  <span className="text-[var(--color-gold)] opacity-90 font-extrabold uppercase text-[10px] tracking-wider shrink-0">
                     {calculateDuration(task.start_time, task.end_time)}
                   </span>
                 )}
