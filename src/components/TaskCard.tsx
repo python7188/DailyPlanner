@@ -349,7 +349,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                     ? 'text-[var(--color-text-ghost)] font-medium'
                     : isOverdue
                     ? 'text-red-400 kinetic-overdue'
-                    : 'text-white tracking-wide drop-shadow-sm'
+                    : 'text-[var(--color-text-primary)] tracking-wide drop-shadow-sm'
                 }`}>
                   {highlighted.map((seg, j) =>
                     !seg.isTime ? (
@@ -402,7 +402,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
               <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
                 
                 {/* OPENING BRACKET */}
-                <span className="text-black font-black text-[15px] sm:text-[18px] leading-none flex items-center translate-y-[0.5px] drop-shadow-sm">[</span>
+                <span className="text-[var(--color-text-primary)] font-black text-[18px] sm:text-[20px] leading-none flex items-center translate-y-[0.5px] drop-shadow-sm">[</span>
 
                 {/* START TIME: Responsive Gold Box */}
                 {task.start_time && (
@@ -413,7 +413,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                 
                 {/* DASH SEPARATOR */}
                 {task.start_time && task.end_time && (
-                  <span className="opacity-70 text-black font-bold text-[10px] sm:text-[14px]">-</span>
+                  <span className="opacity-70 text-[var(--color-text-primary)] font-bold text-[10px] sm:text-[14px]">-</span>
                 )}
                 
                 {/* END TIME: Responsive Gold Box */}
@@ -424,7 +424,7 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                 )}
                 
                 {/* CLOSING BRACKET */}
-                <span className="text-black font-black text-[15px] sm:text-[18px] leading-none flex items-center translate-y-[0.5px] drop-shadow-sm">]</span>
+                <span className="text-[var(--color-text-primary)] font-black text-[18px] sm:text-[20px] leading-none flex items-center translate-y-[0.5px] drop-shadow-sm">]</span>
 
                 {/* CALCULATED DURATION */}
                 {task.start_time && task.end_time && (
