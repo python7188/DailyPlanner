@@ -66,7 +66,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
     return () => subscription.unsubscribe();
   }, []);
 
-  const { tasks, isLoading: tasksLoading, addTask, toggleTask, deleteTask, updateTaskTitle, reorderTasks } = useTasks(userId, isDemo);
+  const { tasks, isLoading: tasksLoading, addTask, toggleTask, deleteTask, updateTaskTitle, updateTaskOrder } = useTasks(userId, isDemo);
   const { goals, subTasks, addGoal, updateGoalProgress, deleteGoal, addSubTask, toggleSubTask, deleteSubTask } = useGoals(userId, isDemo);
 
   const { score: disciplineScore, lastDelta: lastScoreDelta, applyDelta } = useDisciplineScore(userId, isDemo, tasks);
@@ -199,7 +199,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
   const completedToday = todayTasks.filter((t) => t.is_completed).length;
 
   return (
-    <div className="min-h-screen flex bg-[var(--color-bg)] relative overflow-hidden min-w-[380px]">
+    <div className="fixed inset-0 flex flex-col lg:flex-row bg-[var(--color-bg)] overflow-hidden z-0">
       {/* Chrono-Ambient Background */}
       {/* <ChronoAmbient /> */}
 
@@ -235,7 +235,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
       </div>
 
       {/* Main Content */}
-      <div ref={constraintsRef} className="flex-1 flex flex-col min-h-screen relative">
+      <div ref={constraintsRef} className="flex-1 flex flex-col h-full overflow-hidden relative bg-transparent">
         <Header 
           firstName={firstName} 
           onSignOut={handleSignOut} 
@@ -249,7 +249,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
         <div className="sticky top-[60px] z-20 h-6 pointer-events-none bg-gradient-to-b from-[var(--color-bg)] to-transparent" />
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto scroll-smooth pb-28 lg:pb-8" id="main-scroll">
+        <div className="flex-1 overflow-y-auto px-4 py-6 pb-32 scroll-smooth bg-transparent" id="main-scroll">
           <AnimatePresence mode="wait">
             {activeView === 'goals' ? (
               <motion.div
@@ -305,7 +305,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
                   onDelete={deleteTask}
                   onUpdateTitle={updateTaskTitle}
                   onSelectDate={setSelectedDate}
-                  onReorder={reorderTasks}
+                  onReorder={updateTaskOrder}
                   onTimeboxClick={handleTimeboxClick}
                 />
               </motion.div>
@@ -565,15 +565,18 @@ function MobileNav({
       <AnimatePresence>
         {activeView === 'tasks' && !showSquadMenu && (
           <motion.button
-            key="mobile-fab-add"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            whileTap={{ scale: 0.88 }}
             onClick={onOpenAddModal}
-            className="fixed bottom-[90px] md:bottom-10 right-5 md:right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center z-50 touch-none cursor-grab active:cursor-grabbing hover:brightness-110"
+            style={{ 
+              position: 'fixed',
+              bottom: '115px', /* Clears the ~80px nav bar + OS safe area */
+              right: '20px',   /* Aligns it directly above the right-side Squad tab */
+              zIndex: 9999     /* Guarantees it floats over absolutely everything */
+            }}
+            className="md:bottom-10 md:right-8 w-14 h-14 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center touch-none cursor-pointer hover:brightness-110"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />
+            <Plus className="w-6 h-6 text-[#1A1A1A]" strokeWidth={2.5} />
           </motion.button>
         )}
       </AnimatePresence>

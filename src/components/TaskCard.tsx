@@ -402,19 +402,16 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
 
               {/* ── Desktop/Laptop Time Block (Hidden on Mobile) ── */}
               {(task.start_time || task.end_time) && (
-                <div className="hidden sm:flex items-center gap-2 ml-3">
-                  {/* The Unified Gold Box */}
-                  <span className="flex items-center gap-1.5 bg-[#FDF8EE] border border-[#EADDBE] px-2.5 py-0.5 rounded-md shadow-sm text-[var(--color-gold)] text-xs font-bold tracking-tight">
+                <div className="hidden sm:flex items-center gap-1.5 ml-2">
+                  <span className="flex items-center gap-1.5 w-fit bg-[#FDF8EE] border border-[#EADDBE] px-2 py-0.5 rounded-md shadow-sm text-[var(--color-gold)] text-xs font-bold tracking-tight">
                     <span className="opacity-70">[</span>
                     {task.start_time && <span>{formatAMPM(task.start_time)}</span>}
                     {task.start_time && task.end_time && <span className="opacity-50">-</span>}
                     {task.end_time && <span>{formatAMPM(task.end_time)}</span>}
                     <span className="opacity-70">]</span>
                   </span>
-                  
-                  {/* Calculated Duration outside the box */}
                   {task.start_time && task.end_time && (
-                    <span className="text-[#8b6f3b] font-extrabold uppercase text-xs tracking-wider shrink-0">
+                    <span className="text-[#8b6f3b] font-extrabold uppercase text-[11px] tracking-wider shrink-0">
                       {calculateDuration(task.start_time, task.end_time)}
                     </span>
                   )}
@@ -424,19 +421,16 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
 
             {/* ── Mobile Time Block (Hidden on Desktop) ── */}
             {(task.start_time || task.end_time) && (
-              <div className="flex sm:hidden items-center gap-2 mt-0.5">
-                {/* The Unified Gold Box (Mobile Scaled) */}
-                <span className="flex items-center gap-1 w-fit bg-[#FDF8EE] border border-[#EADDBE] px-2 py-0.5 rounded-md shadow-sm text-[var(--color-gold)] text-[11px] font-bold tracking-tight">
+              <div className="flex sm:hidden items-center gap-1.5 mt-0.5">
+                <span className="flex items-center gap-1.5 w-fit bg-[#FDF8EE] border border-[#EADDBE] px-2 py-0.5 rounded-md shadow-sm text-[var(--color-gold)] text-xs font-bold tracking-tight">
                   <span className="opacity-70">[</span>
                   {task.start_time && <span>{formatAMPM(task.start_time)}</span>}
                   {task.start_time && task.end_time && <span className="opacity-50">-</span>}
                   {task.end_time && <span>{formatAMPM(task.end_time)}</span>}
                   <span className="opacity-70">]</span>
                 </span>
-                
-                {/* Calculated Duration outside the box */}
                 {task.start_time && task.end_time && (
-                  <span className="text-[#8b6f3b] font-extrabold uppercase text-[10px] tracking-wider shrink-0">
+                  <span className="text-[#8b6f3b] font-extrabold uppercase text-[11px] tracking-wider shrink-0">
                     {calculateDuration(task.start_time, task.end_time)}
                   </span>
                 )}

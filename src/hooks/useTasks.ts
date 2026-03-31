@@ -70,6 +70,7 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
         .from('tasks')
         .select('*')
         .eq('user_id', userId)
+        .order('order_index', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false });
 
       if (error) { console.error(error); }
@@ -218,44 +219,41 @@ export function useTasks(userId: string | undefined, isDemo: boolean) {
     [isDemo]
   );
 
-  const reorderTasks = useCallback((reorderedList: Task[]) => {
-    // 1. Optimistic UI update
-
-    // We only receive the subset of tasks for a specific date that were reordered, 
-    // but the main state has ALL tasks.
-    setTasks((prev) => {
-      // Create a map to ensure we maintain all tasks
-      const newTasks = [...prev];
-
-      // Update the indices/positions of the reordered subset within the main list
-      reorderedList.forEach((task, newIndex) => {
-        const globalIndex = newTasks.findIndex(t => t.id === task.id);
-        if (globalIndex !== -1) {
-          newTasks[globalIndex] = { ...task, order_index: newIndex };
-        }
+  const updateTaskOrder = useCallback(
+    async (reorderedTasks: Task[]) => {
+      // 1. Optimistically update local state so the UI doesn't stutter
+      setTasks((prev) => {
+        const newTasks = [...prev];
+        reorderedTasks.forEach((task, index) => {
+          const idx = newTasks.findIndex((t) => t.id === task.id);
+          if (idx !== -1) newTasks[idx].order_index = index;
+        });
+        return newTasks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0) || new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
       });
-      // Sort the whole array just in case
-      return newTasks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0) || new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-    });
 
-    if (!isDemo) {
-      // 2. Background DB sync
-      const updates = reorderedList.map((t) => ({
-        id: t.id,
-        user_id: t.user_id || userId,
-        title: t.title,
-        is_completed: t.is_completed,
-        target_date: t.target_date,
-        time_target_minutes: t.time_target_minutes
+      if (isDemo) return;
+
+      // 2. Map the new array to create a payload of just IDs and their new indexes
+      const updates = reorderedTasks.map((task, index) => ({
+        id: task.id,
+        order_index: index,
       }));
 
-      supabase.from('tasks').upsert(updates).then(({ error }) => {
-        if (error) console.error("Error reordering:", error);
-      });
-    }
-  }, [isDemo, userId]);
+      // 3. Send bulk update to Supabase
+      try {
+        await Promise.all(
+          updates.map((update) =>
+            supabase.from('tasks').update({ order_index: update.order_index }).eq('id', update.id)
+          )
+        );
+      } catch (error) {
+        console.error("Failed to save task order:", error);
+      }
+    },
+    [isDemo]
+  );
 
-  return { tasks, isLoading, addTask, toggleTask, deleteTask, updateTaskTitle, reorderTasks };
+  return { tasks, isLoading, addTask, toggleTask, deleteTask, updateTaskTitle, updateTaskOrder };
 }
 
 // ============ useGoals HOOK ============
