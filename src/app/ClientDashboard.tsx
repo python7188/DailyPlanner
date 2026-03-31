@@ -249,7 +249,7 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
         <div className="sticky top-[60px] z-20 h-6 pointer-events-none bg-gradient-to-b from-[var(--color-bg)] to-transparent" />
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto scroll-smooth" id="main-scroll">
+        <div className="flex-1 overflow-y-auto scroll-smooth pb-28 lg:pb-8" id="main-scroll">
           <AnimatePresence mode="wait">
             {activeView === 'goals' ? (
               <motion.div
@@ -420,8 +420,8 @@ function MobileNav({
   });
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-[var(--color-bg-sidebar)]/95 backdrop-blur-lg border-t border-[var(--color-border)] px-4 py-3 z-50">
-      <div className="flex flex-col gap-3 relative">
+    <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-[var(--color-bg-sidebar)]/95 backdrop-blur-lg border-t border-[var(--color-border)] px-3 pt-14 pb-3 z-50">
+      <div className="flex flex-col gap-2 relative">
         {/* Squad Menu Popup */}
         <AnimatePresence>
           {showSquadMenu && (
@@ -466,14 +466,31 @@ function MobileNav({
         </AnimatePresence>
 
         {/* Navigation Tabs */}
-        <div className="flex bg-[var(--color-bg-input)] rounded-full p-1 border border-[var(--color-border)]">
+        <div className="relative flex bg-[var(--color-bg-input)] rounded-full p-1 border border-[var(--color-border)]">
+          {/* Floating + button — lives ABOVE the pill, centred over Squad slot */}
+          <AnimatePresence>
+            {activeView === 'tasks' && (
+              <motion.button
+                key="mobile-add-btn"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                whileTap={{ scale: 0.88 }}
+                onClick={onOpenAddModal}
+                className="absolute right-[calc(25%-20px)] -top-12 w-10 h-10 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center hover:brightness-110 transition-all z-20"
+              >
+                <Plus className="w-5 h-5 text-white" />
+              </motion.button>
+            )}
+          </AnimatePresence>
+
           <button
             onClick={() => {
               onSelectView('tasks');
               onSelectDate(todayStr);
               setShowSquadMenu(false);
             }}
-            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all ${
+            className={`flex-1 flex items-center justify-center px-1 py-2 rounded-full text-[10px] xs:text-[11px] font-semibold transition-all ${
               activeView === 'tasks' && !showSquadMenu
                 ? 'bg-white text-[var(--color-gold)] shadow-sm ring-1 ring-black/5'
                 : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
@@ -486,7 +503,7 @@ function MobileNav({
               onSelectView('goals');
               setShowSquadMenu(false);
             }}
-            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all ${
+            className={`flex-1 flex items-center justify-center px-1 py-2 rounded-full text-[10px] xs:text-[11px] font-semibold transition-all ${
               activeView === 'goals' && !showSquadMenu
                 ? 'bg-white text-[var(--color-gold)] shadow-sm ring-1 ring-black/5'
                 : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
@@ -499,7 +516,7 @@ function MobileNav({
               onSelectView('execution');
               setShowSquadMenu(false);
             }}
-            className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all ${
+            className={`flex-1 flex items-center justify-center px-1 py-2 rounded-full text-[10px] xs:text-[11px] font-semibold transition-all ${
               activeView === 'execution' && !showSquadMenu
                 ? 'bg-[var(--color-gold-dim)] border border-[var(--color-border-gold)] text-[var(--color-gold)]'
                 : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
@@ -507,34 +524,16 @@ function MobileNav({
           >
             Execute
           </button>
-          {/* + Add Task button — sits above Squad */}
-          <div className="flex-1 flex flex-col items-center justify-center relative">
-            <AnimatePresence>
-              {activeView === 'tasks' && (
-                <motion.button
-                  key="mobile-add-btn"
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0, opacity: 0 }}
-                  whileTap={{ scale: 0.88 }}
-                  onClick={onOpenAddModal}
-                  className="absolute -top-8 w-10 h-10 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center hover:brightness-110 transition-all z-10"
-                >
-                  <Plus className="w-5 h-5 text-white" />
-                </motion.button>
-              )}
-            </AnimatePresence>
-            <button
-              onClick={() => setShowSquadMenu(!showSquadMenu)}
-              className={`w-full flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3 py-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all ${
-                showSquadMenu
-                  ? 'bg-[var(--color-gold)] text-white shadow-[var(--shadow-gold)]'
-                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
-              }`}
-            >
-              Squad
-            </button>
-          </div>
+          <button
+            onClick={() => setShowSquadMenu(!showSquadMenu)}
+            className={`flex-1 flex items-center justify-center px-1 py-2 rounded-full text-[10px] xs:text-[11px] font-semibold transition-all ${
+              showSquadMenu
+                ? 'bg-[var(--color-gold)] text-white shadow-[var(--shadow-gold)]'
+                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer'
+            }`}
+          >
+            Squad
+          </button>
         </div>
 
         {/* Date Selector (Only visible in Tasks view and Squad Menu closed) */}
