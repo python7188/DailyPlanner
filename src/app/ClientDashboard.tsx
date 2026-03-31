@@ -420,8 +420,9 @@ function MobileNav({
   });
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-[var(--color-bg-sidebar)]/95 backdrop-blur-lg border-t border-[var(--color-border)] px-3 pt-14 pb-3 z-50">
-      <div className="flex flex-col gap-2 relative">
+    <>
+      <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-[var(--color-bg-sidebar)]/95 backdrop-blur-lg border-t border-[var(--color-border)] px-4 py-3 z-50">
+        <div className="flex flex-col gap-2 relative">
         {/* Squad Menu Popup */}
         <AnimatePresence>
           {showSquadMenu && (
@@ -466,24 +467,7 @@ function MobileNav({
         </AnimatePresence>
 
         {/* Navigation Tabs */}
-        <div className="relative flex bg-[var(--color-bg-input)] rounded-full p-1 border border-[var(--color-border)]">
-          {/* Floating + button — lives ABOVE the pill, centred over Squad slot */}
-          <AnimatePresence>
-            {activeView === 'tasks' && (
-              <motion.button
-                key="mobile-add-btn"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                whileTap={{ scale: 0.88 }}
-                onClick={onOpenAddModal}
-                className="absolute right-[calc(25%-20px)] -top-12 w-10 h-10 rounded-full btn-gold shadow-[var(--shadow-gold)] flex items-center justify-center hover:brightness-110 transition-all z-20"
-              >
-                <Plus className="w-5 h-5 text-white" />
-              </motion.button>
-            )}
-          </AnimatePresence>
-
+        <div className="flex bg-[var(--color-bg-input)] rounded-full p-1 border border-[var(--color-border)]">
           <button
             onClick={() => {
               onSelectView('tasks');
@@ -545,35 +529,30 @@ function MobileNav({
               exit={{ height: 0, opacity: 0 }}
               className="flex items-center gap-1 overflow-x-auto pb-1"
             >
-              <button
-                onClick={() => onSelectDate(null)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all ${
-                  selectedDate === null
-                    ? 'bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)]'
-                    : 'text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-input)]'
-                }`}
-              >
-                All
-              </button>
               {dates.map((d) => {
                 const label =
                   d === todayStr
                     ? 'Today'
-                    : new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' });
-                const hasTasks = taskCountByDate[d] > 0;
+                    : new Date(d + 'T00:00:00').toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        day: 'numeric',
+                      });
+                const count = taskCountByDate[d] || 0;
                 return (
                   <button
                     key={d}
-                    onClick={() => onSelectDate(selectedDate === d ? null : d)}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[10px] font-medium transition-all relative ${
+                    onClick={() => onSelectDate(d)}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
                       selectedDate === d
                         ? 'bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)]'
-                        : 'text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-input)]'
+                        : 'text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-input)] cursor-pointer'
                     }`}
                   >
                     {label}
-                    {hasTasks && selectedDate !== d && (
-                      <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-[var(--color-gold)]" />
+                    {count > 0 && selectedDate !== d && (
+                      <span className="w-4 h-4 rounded-full bg-[var(--color-border)] text-[var(--color-text-primary)] flex items-center justify-center text-[8px] font-bold">
+                        {count}
+                      </span>
                     )}
                   </button>
                 );
@@ -582,6 +561,23 @@ function MobileNav({
           )}
         </AnimatePresence>
       </div>
+
+      {/* Floating Action Button (FAB) Mobile - True Fixed Position */}
+      <AnimatePresence>
+        {activeView === 'tasks' && (
+          <motion.button
+            key="mobile-fab-add"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            whileTap={{ scale: 0.88 }}
+            onClick={onOpenAddModal}
+            className="fixed bottom-24 right-4 w-12 h-12 rounded-full btn-gold shadow-[0_4px_20px_rgba(212,161,39,0.4)] flex items-center justify-center hover:brightness-110 transition-all z-[60]"
+          >
+            <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

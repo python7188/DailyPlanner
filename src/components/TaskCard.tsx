@@ -375,6 +375,31 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
                 )}
               </div>
             )}
+            {/* Mobile Time Block: Rendered directly inside the flex-1 Title column so it perfectly aligns under the text */}
+            {hasTimeBlock && !task.is_completed && (
+              <div className="flex md:hidden items-center gap-1 mt-1.5 flex-wrap">
+                <span className="text-[var(--color-text-ghost)] text-sm font-light">[</span>
+                {task.start_time && (
+                  <span className="px-1.5 py-0.5 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded-md text-[10px] font-bold uppercase tracking-wide">
+                    {formatAMPM(task.start_time)}
+                  </span>
+                )}
+                {task.start_time && task.end_time && (
+                  <span className="text-[var(--color-text-ghost)] text-[10px] font-medium">–</span>
+                )}
+                {task.end_time && (
+                  <span className="px-1.5 py-0.5 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded-md text-[10px] font-bold uppercase tracking-wide">
+                    {formatAMPM(task.end_time)}
+                  </span>
+                )}
+                <span className="text-[var(--color-text-ghost)] text-sm font-light">]</span>
+                {task.start_time && task.end_time && (
+                  <span className="px-1.5 py-0.5 bg-[#eaddbe]/30 text-[#8b6f3b] text-[10px] font-bold uppercase rounded-md ml-0.5">
+                    {calculateDuration(task.start_time, task.end_time)}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Overdue badge */}
@@ -425,55 +450,29 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
             <Trash2 className="w-3.5 h-3.5 text-[var(--color-danger)]" />
           </motion.button>
         </div>
-
-        {/* ── Row 2: Time block ── mobile compact / desktop premium ── */}
+        {/* ── Row 2: Time block ── Desktop Layout ── */}
         {hasTimeBlock && !task.is_completed && (
-          <div className="flex items-center gap-1 mt-1 pl-[calc(18px+1.75rem+0.75rem)] flex-wrap">
-            {/* Desktop: premium glass pill with Clock icon */}
-            <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg
-              bg-[var(--color-bg-card)] border border-[var(--color-border-gold)]/40
-              shadow-[0_0_12px_rgba(212,161,39,0.08)] backdrop-blur-sm">
-              <Clock className="w-3 h-3 text-[var(--color-gold)] opacity-70 flex-shrink-0" />
-              {task.start_time && (
-                <span className="text-[var(--color-gold)] font-semibold text-xs tracking-wide">
-                  {formatAMPM(task.start_time)}
-                </span>
-              )}
-              {task.start_time && task.end_time && (
-                <span className="text-[var(--color-text-ghost)] text-xs">→</span>
-              )}
-              {task.end_time && (
-                <span className="text-[var(--color-gold)] font-semibold text-xs tracking-wide">
-                  {formatAMPM(task.end_time)}
-                </span>
-              )}
-              {task.start_time && task.end_time && (
-                <span className="ml-1 text-[10px] font-bold text-[var(--color-text-secondary)] bg-[var(--color-gold-dim)] px-1.5 py-0.5 rounded-md">
-                  {calculateDuration(task.start_time, task.end_time)}
-                </span>
-              )}
-            </div>
-            {/* Mobile: compact inline badges, no brackets */}
-            <div className="flex md:hidden items-center gap-1 flex-wrap">
-              {task.start_time && (
-                <span className="px-1.5 py-0.5 bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)]/50 rounded text-[10px] font-semibold">
-                  {formatAMPM(task.start_time)}
-                </span>
-              )}
-              {task.start_time && task.end_time && (
-                <span className="text-[var(--color-text-ghost)] text-[10px]">–</span>
-              )}
-              {task.end_time && (
-                <span className="px-1.5 py-0.5 bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)]/50 rounded text-[10px] font-semibold">
-                  {formatAMPM(task.end_time)}
-                </span>
-              )}
-              {task.start_time && task.end_time && (
-                <span className="px-1.5 py-0.5 bg-[var(--color-bg-input)] text-[var(--color-text-secondary)] rounded text-[10px] font-bold">
-                  {calculateDuration(task.start_time, task.end_time)}
-                </span>
-              )}
-            </div>
+          <div className="hidden md:flex items-center gap-1.5 mt-1.5 pl-[calc(18px+1.75rem+0.75rem)] flex-wrap">
+            <span className="text-[var(--color-text-ghost)] text-sm font-light">[</span>
+            {task.start_time && (
+              <span className="px-2 py-0.5 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded-md text-xs font-bold uppercase tracking-wide">
+                {formatAMPM(task.start_time)}
+              </span>
+            )}
+            {task.start_time && task.end_time && (
+              <span className="text-[var(--color-text-ghost)] text-xs font-medium">–</span>
+            )}
+            {task.end_time && (
+              <span className="px-2 py-0.5 bg-[#FDF8EE] text-[#B8934A] border border-[#EADDBE] rounded-md text-xs font-bold uppercase tracking-wide">
+                {formatAMPM(task.end_time)}
+              </span>
+            )}
+            <span className="text-[var(--color-text-ghost)] text-sm font-light">]</span>
+            {task.start_time && task.end_time && (
+              <span className="px-2 py-0.5 bg-[#eaddbe]/30 text-[#8b6f3b] text-xs font-bold uppercase rounded-md ml-0.5">
+                {calculateDuration(task.start_time, task.end_time)}
+              </span>
+            )}
           </div>
         )}
 
