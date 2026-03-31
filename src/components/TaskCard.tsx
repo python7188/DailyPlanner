@@ -404,22 +404,34 @@ export default function TaskCard({ task, onToggle, onDelete, onUpdateTitle, onTi
 
             {/* ── Universal Time Block (Desktop & Mobile) ── */}
             {(task.start_time || task.end_time) && (
-              <div className="flex items-center gap-2 mt-1">
-                {/* The Premium Math Class Gold Pill */}
-                <span className="font-bold px-2 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] text-xs shadow-[0_0_10px_rgba(212,161,39,0.2)] flex items-center gap-1 w-fit">
-                  <span className="opacity-70 font-normal">[</span>
-                  {task.start_time && <span>{formatAMPM(task.start_time)}</span>}
-                  {task.start_time && task.end_time && <span className="opacity-60 font-medium">-</span>}
-                  {task.end_time && <span>{formatAMPM(task.end_time)}</span>}
-                  <span className="opacity-70 font-normal">]</span>
-                </span>
+              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                 
-                {/* Calculated Duration */}
+                {/* START TIME: Individual Gold Box */}
+                {task.start_time && (
+                  <span className="font-bold px-2 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] text-[11px] shadow-[0_0_10px_rgba(212,161,39,0.2)] flex items-center w-fit">
+                    {formatAMPM(task.start_time)}
+                  </span>
+                )}
+                
+                {/* DASH SEPARATOR */}
                 {task.start_time && task.end_time && (
-                  <span className="text-[var(--color-gold)] opacity-90 font-extrabold uppercase text-[10px] tracking-wider shrink-0">
+                  <span className="opacity-50 text-[var(--color-gold)] font-medium">-</span>
+                )}
+                
+                {/* END TIME: Individual Gold Box */}
+                {task.end_time && (
+                  <span className="font-bold px-2 py-0.5 rounded-md bg-[var(--color-gold-dim)] text-[var(--color-gold)] border border-[var(--color-border-gold)] text-[11px] shadow-[0_0_10px_rgba(212,161,39,0.2)] flex items-center w-fit">
+                    {formatAMPM(task.end_time)}
+                  </span>
+                )}
+                
+                {/* CALCULATED DURATION */}
+                {task.start_time && task.end_time && (
+                  <span className="text-[var(--color-gold)] opacity-90 font-extrabold uppercase text-[10px] tracking-wider shrink-0 ml-1">
                     {calculateDuration(task.start_time, task.end_time)}
                   </span>
                 )}
+                
               </div>
             )}
           </div>
