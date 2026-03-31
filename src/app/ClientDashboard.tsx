@@ -579,5 +579,6 @@ function MobileNav({
         )}
       </AnimatePresence>
     </div>
+    </>
   );
 }
