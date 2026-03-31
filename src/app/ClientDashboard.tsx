@@ -249,7 +249,12 @@ export default function ClientDashboard({ initialUserId, firstName }: { initialU
         <div className="sticky top-[60px] z-20 h-6 pointer-events-none bg-gradient-to-b from-[var(--color-bg)] to-transparent" />
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 pb-32 scroll-smooth bg-transparent" id="main-scroll">
+        <div 
+          className={`flex-1 overflow-y-auto scroll-smooth bg-transparent ${
+            activeView === 'execution' ? 'p-0' : 'px-4 py-6 pb-32'
+          }`} 
+          id="main-scroll"
+        >
           <AnimatePresence mode="wait">
             {activeView === 'goals' ? (
               <motion.div
